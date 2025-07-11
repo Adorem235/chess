@@ -1,4 +1,4 @@
- class Piece {
+ class piece {
   constructor( color, location) {
     this.color = color; // e.g., 'white' or 'black'
     this.location = location; // e.g., { row: 0, col: 0 }
@@ -90,4 +90,26 @@
   }
 
 
+}
+
+export default function Piece(color, type, location) {
+  this.color = color; // e.g., 'white' or 'black'
+  this.type = type; // e.g., 'pawn', 'rook', etc.
+  this.location = location; // e.g., { row: 0, col: 0 }
+
+  this.getColor = function() {
+    return this.color;
+  };
+
+  this.getType = function() {
+    return this.type;
+  };
+
+  this.getLocation = function() {
+    return this.location;
+  };
+
+  this.setLocation = function(newLocation) {
+    this.location = newLocation;
+  };
 }
