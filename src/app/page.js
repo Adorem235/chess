@@ -1,11 +1,10 @@
-import Image from "next/image";
-
+import Chessboard from "./chessboard";
 export default function Home() {
   return (
-    <div>
-      <h1 className="text-4xl font-bold underline">
-        Welcome to Adorem235 Chess!
-      </h1>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <Chessboard />
     </div>
+
+      
   );
 }
