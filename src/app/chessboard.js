@@ -5,6 +5,7 @@ import Piece from "./piece";
 
 export default function Chessboard() {
   // Initialize an 8x8 board with pawns for demonstration
+  const [turn, setTurn] = useState("white");
   const [board, setBoard] = useState(
     Array(8)
       .fill(null)
@@ -80,6 +81,7 @@ export default function Chessboard() {
     );
     return newBoard;
   });
+  setTurn(prevTurn => (prevTurn === "white" ? "black" : "white"));
 }
 
   function handleSquareClick(row, col, piece) {
@@ -94,7 +96,9 @@ export default function Chessboard() {
       // Validate move using the selected piece's move logic
       try {
         // You may want to pass both locations for pawns, etc.
-        if (selectedPiece.canMove(selectedPiece.getLocation(), { row, col })) {
+        if (selectedPiece.color !== turn) {
+          console.error("You can only move your own pieces.");
+        }else if (selectedPiece.canMove(selectedPiece.getLocation(), { row, col })) {
           movePiece(fromRow, fromCol, row, col);
           console.log("Moved piece from", fromRow, fromCol, "to", row, col);
         }
@@ -109,22 +113,25 @@ export default function Chessboard() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="grid grid-cols-8 grid-rows-8 gap-0">
-        {board.map((rowArr, i) =>
-          rowArr.map((piece, j) => (
-            <Square
-              key={`${i}-${j}`}
-              row={i}
-              col={j}
-              piece={piece}
-              setPiece={p => setPiece(i, j, p)}
-              removePiece={() => removePiece(i, j)}
-              onSquareClick={handleSquareClick}
-            />
-          ))
-        )}
-      </div>
+  <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div className="mb-4 text-center">
+      <h1 className="text-2xl mb-4">{turn}&apos;s Turn</h1>
     </div>
-  );
+    <div className="grid grid-cols-8 grid-rows-8 gap-0">
+      {board.map((rowArr, i) =>
+        rowArr.map((piece, j) => (
+          <Square
+            key={`${i}-${j}`}
+            row={i}
+            col={j}
+            piece={piece}
+            setPiece={p => setPiece(i, j, p)}
+            removePiece={() => removePiece(i, j)}
+            onSquareClick={handleSquareClick}
+          />
+        ))
+      )}
+    </div>
+  </div>
+);
 }
