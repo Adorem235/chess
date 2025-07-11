@@ -1,9 +1,11 @@
 import Image from "next/image";
+import Piece from "./piece";
 
-export default function Square({ row, col, piece, setPiece, removePiece }) {
+export default function Square({ row, col, piece, setPiece, removePiece, onSquareClick }) {
   // Determine square color
   const isDark = (row + col) % 2 === 1;
   const bgColor = isDark ? "bg-green-700" : "bg-green-200";
+
 
   // Render the piece (example for pawn)
   function renderPiece(piece) {
@@ -73,11 +75,7 @@ export default function Square({ row, col, piece, setPiece, removePiece }) {
   return (
     <div
       className={`${bgColor} w-12 h-12 flex items-center justify-center`}
-      onClick={() => {
-        // Example: remove piece on click
-        if (piece) removePiece();
-        // else setPiece(new Piece(...)); // Add logic to place a piece if needed
-      }}
+      onClick={() => onSquareClick(row, col, piece)}
     >
       {renderPiece(piece)}
     </div>

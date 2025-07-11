@@ -49,6 +49,8 @@ export default function Chessboard() {
       )
   );
 
+  const [selected, setSelected] = useState(null);
+
   // Set a piece at a specific square
   function setPiece(row, col, piece) {
     setBoard(prev =>
@@ -64,6 +66,47 @@ export default function Chessboard() {
   function removePiece(row, col) {
     setPiece(row, col, null);
   }
+  function movePiece(fromRow, fromCol, toRow, toCol) {
+  setBoard(prev => {
+    const piece = prev[fromRow][fromCol];
+    if (!piece) return prev;
+    const newPiece = new Piece(piece.color, piece.type, { row: toRow, col: toCol });
+    const newBoard = prev.map((row, i) =>
+      row.map((sq, j) => {
+        if (i === fromRow && j === fromCol) return null;
+        if (i === toRow && j === toCol) return newPiece;
+        return sq;
+      })
+    );
+    return newBoard;
+  });
+}
+
+  function handleSquareClick(row, col, piece) {
+    console.log("Clicked:", row, col, piece);
+    if (selected) {
+      const { row: fromRow, col: fromCol, piece: selectedPiece } = selected;
+      // Don't allow moving to the same square
+      if (fromRow === row && fromCol === col) {
+        setSelected(null);
+        return;
+      }
+      // Validate move using the selected piece's move logic
+      try {
+        // You may want to pass both locations for pawns, etc.
+        if (selectedPiece.canMove(selectedPiece.getLocation(), { row, col })) {
+          movePiece(fromRow, fromCol, row, col);
+          console.log("Moved piece from", fromRow, fromCol, "to", row, col);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+      setSelected(null);
+    } else if (piece) {
+      setSelected({ row, col, piece });
+      console.log("Selected piece at", row, col);
+    }
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -77,6 +120,7 @@ export default function Chessboard() {
               piece={piece}
               setPiece={p => setPiece(i, j, p)}
               removePiece={() => removePiece(i, j)}
+              onSquareClick={handleSquareClick}
             />
           ))
         )}
