@@ -33,31 +33,31 @@ class Piece {
         throw new Error('this is not a valid pawn move');
       }
     case 'rook':
-      if (this.isValidRookMove(newLocation)) {
+      if (this.isValidRookMove(currentLocation,newLocation)) {
         return true;
       } else {
         throw new Error('Invalid rook move');
       }
     case 'knight':
-      if (this.isValidKnightMove(newLocation)) {
+      if (this.isValidKnightMove(currentLocation,newLocation)) {
         return true;
       } else {
         throw new Error('Invalid knight move');
       }
     case 'bishop':
-      if (this.isValidBishopMove(newLocation)) {
+      if (this.isValidBishopMove(currentLocation,newLocation)) {
         return true;
       } else {
         throw new Error('Invalid bishop move');
       }
     case 'queen':
-      if (this.isValidQueenMove(newLocation)) {
+      if (this.isValidQueenMove(currentLocation,newLocation)) {
         return true;
       } else {
         throw new Error('Invalid queen move');
       }
     case 'king':
-      if (this.isValidKingMove(newLocation)) {
+      if (this.isValidKingMove(currentLocation,newLocation)) {
         return true;
       } else {
         throw new Error('Invalid king move');
@@ -68,12 +68,8 @@ class Piece {
 }
 
   isValidPawnMove(currentLocation, newLocation) {
-    console.log("checking pawn move");
-    console.log("currentLocation:", currentLocation);
-    console.log("newLocation:", newLocation);
     // If the pawn is black
     if(this.color === 'black') {
-    console.log("checking black pawn move");
     if(currentLocation.row === 1  && newLocation.row === 3 && currentLocation.col === newLocation.col) {
       return true;
     } else if (newLocation.row === currentLocation.row + 1 && newLocation.col === currentLocation.col) {
@@ -82,7 +78,6 @@ class Piece {
     }
     // If the pawn is white
     else{
-      console.log("checking white pawn move");
  
     if(currentLocation.row === 6 && newLocation.row === 4 && currentLocation.col === newLocation.col) {
       return true;
@@ -113,20 +108,43 @@ isValidPawnCapture(currentLocation, newLocation) {
   return false;
 
   }
-  isValidRookMove(newLocation) {
-    // Logic specific to rook movement
+  isValidRookMove(currentLocation,newLocation) {
+    if( currentLocation.row == newLocation.row || currentLocation.col == newLocation.col) {
+      return true;
+    }
   }
-  isValidKnightMove(newLocation) {
-    // Logic specific to knight movement
+  isValidKnightMove(currentLocation,newLocation) {
+    if (
+      (Math.abs(currentLocation.row - newLocation.row) === 2 && Math.abs(currentLocation.col - newLocation.col) === 1) ||
+      (Math.abs(currentLocation.row - newLocation.row) === 1 && Math.abs(currentLocation.col - newLocation.col) === 2)
+    ) {
+      return true;
+    }
   }
-  isValidBishopMove(newLocation) {
-    // Logic specific to bishop movement
+  isValidBishopMove(currentLocation,newLocation) {
+    if (
+      Math.abs(currentLocation.row - newLocation.row) === Math.abs(currentLocation.col - newLocation.col)
+    ) {
+      return true;
+    }
   }
-  isValidQueenMove(newLocation) {
+  isValidQueenMove(currentLocation,newLocation) {
+    if (
+      this.isValidRookMove(currentLocation, newLocation) ||
+      this.isValidBishopMove(currentLocation, newLocation)
+    ) {
+      return true;
+    }
     // Logic specific to queen movement
   }
-  isValidKingMove(newLocation) {
+  isValidKingMove(currentLocation,newLocation) {
     // Logic specific to king movement
+    if (
+      Math.abs(currentLocation.row - newLocation.row) <= 1 &&
+      Math.abs(currentLocation.col - newLocation.col) <= 1
+    ) {
+      return true;
+    }
   }
 
 
