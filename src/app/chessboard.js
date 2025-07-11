@@ -11,9 +11,41 @@ export default function Chessboard() {
       .map((_, i) =>
         Array(8)
           .fill(null)
-          .map((_, j) =>
-            i === 1 ? new Piece("white", "pawn", { row: i, col: j }) : null
-          )
+          .map((_, j) => {
+            // Initialise black pieces
+            if (i === 0) {
+              if (j === 0 || j === 7) {
+                return new Piece("black", "rook", { row: i, col: j });
+              } else if (j === 1 || j === 6) {
+                return new Piece("black", "knight", { row: i, col: j });
+              } else if (j === 2 || j === 5) {
+                return new Piece("black", "bishop", { row: i, col: j });
+              } else if (j === 3) {
+                return new Piece("black", "queen", { row: i, col: j });
+              } else if (j === 4) {
+                return new Piece("black", "king", { row: i, col: j });
+              }
+            } else if (i === 1) {
+              return new Piece("black", "pawn", { row: i, col: j });
+            }
+            //initialise white pieces
+            else if (i === 6) {
+              return new Piece("white", "pawn", { row: i, col: j });
+            } else if (i === 7) {
+              if (j === 0 || j === 7) {
+                return new Piece("white", "rook", { row: i, col: j });
+              } else if (j === 1 || j === 6) {
+                return new Piece("white", "knight", { row: i, col: j });
+              } else if (j === 2 || j === 5) {
+                return new Piece("white", "bishop", { row: i, col: j });
+              } else if (j === 3) {
+                return new Piece("white", "queen", { row: i, col: j });
+              } else if (j === 4) {
+                return new Piece("white", "king", { row: i, col: j });
+              }
+            }
+            return null; // Empty square
+          })
       )
   );
 
