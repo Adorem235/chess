@@ -88,19 +88,49 @@ export default function Chessboard() {
     console.log("Clicked:", row, col, piece);
     if (selected) {
       const { row: fromRow, col: fromCol, piece: selectedPiece } = selected;
+      const targetPiece = board[row][col]; // Get the piece at the destination
+
       // Don't allow moving to the same square
       if (fromRow === row && fromCol === col) {
         setSelected(null);
         return;
       }
-      // Validate move using the selected piece's move logic
+
       try {
-        // You may want to pass both locations for pawns, etc.
         if (selectedPiece.color !== turn) {
           console.error("You can only move your own pieces.");
-        }else if (selectedPiece.canMove(selectedPiece.getLocation(), { row, col })) {
-          movePiece(fromRow, fromCol, row, col);
-          console.log("Moved piece from", fromRow, fromCol, "to", row, col);
+        }
+        // If destination has a piece
+        else if (targetPiece) {
+          if (targetPiece.color === selectedPiece.color) {
+            // Can't capture your own piece
+            console.error("You can't capture your own piece.");
+          } else {
+            // Attempt capture (for pawns, use isValidPawnCapture; for others, use canMove)
+            if (
+              selectedPiece.getType() === "pawn"
+                ? selectedPiece.isValidPawnCapture(selectedPiece.getLocation(), { row, col })
+                : selectedPiece.canMove(selectedPiece.getLocation(), { row, col })
+            ) {
+              movePiece(fromRow, fromCol, row, col);
+              console.log("Captured piece at", row, col);
+            } else {
+              console.error("Invalid capture move.");
+            }
+          }
+        }
+        // If destination is empty
+        else {
+          if (
+            selectedPiece.getType() === "pawn"
+              ? selectedPiece.isValidPawnMove(selectedPiece.getLocation(), { row, col })
+              : selectedPiece.canMove(selectedPiece.getLocation(), { row, col })
+          ) {
+            movePiece(fromRow, fromCol, row, col);
+            console.log("Moved piece from", fromRow, fromCol, "to", row, col);
+          } else {
+            console.error("Invalid move.");
+          }
         }
       } catch (e) {
         console.error(e);

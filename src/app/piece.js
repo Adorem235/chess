@@ -92,7 +92,7 @@ isValidPawnCapture(currentLocation, newLocation) {
   // If the pawn is black
   if (this.color === 'black') {
     if (
-  newLocation.row === currentLocation.row - 1 &&
+  newLocation.row === currentLocation.row + 1 &&
   Math.abs(newLocation.col - currentLocation.col) === 1
 ) {
   return true; // Black pawn capturing diagonally
@@ -101,7 +101,7 @@ isValidPawnCapture(currentLocation, newLocation) {
     // If the pawn is white
   else{
 
-    if (newLocation.row === currentLocation.row + 1 && Math.abs(newLocation.col - currentLocation.col) === 1) {
+    if (newLocation.row === currentLocation.row - 1 && Math.abs(newLocation.col - currentLocation.col) === 1) {
       return true;
     }
   }
