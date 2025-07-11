@@ -1,7 +1,8 @@
- class piece {
-  constructor( color, location) {
+class Piece {
+  constructor( color,  type, location) {
     this.color = color; // e.g., 'white' or 'black'
     this.location = location; // e.g., { row: 0, col: 0 }
+    this.type = type; // e.g., 'pawn', 'rook', 'knight', etc.
 
   }
     getLocation() {
@@ -14,64 +15,103 @@
   getColor() {
     return this.color;
   }
+  getType() {
+    return this.type;
+  }
 
   toString() {
     return `${this.color} ${this.type}`;
   }
+  
 
-  move(newLocation) {
-    switch (this.type) {
-      case 'pawn':
-        if (this.isValidPawnMove(newLocation)) {
-          this.setLocation(newLocation);
-        } else {
-          throw new Error('Invalid pawn move');
-        }
-        break;
-      case 'rook':
-        if (this.isValidRookMove(newLocation)) {
-          this.setLocation(newLocation);
-        } else {
-          throw new Error('Invalid rook move');
-        }
-        break;
-      case 'knight':
-        if (this.isValidKnightMove(newLocation)) {
-          this.setLocation(newLocation);
-        } else {
-          throw new Error('Invalid knight move');
-        }
-        break;
-      case 'bishop':
-        if (this.isValidBishopMove(newLocation)) {
-          this.setLocation(newLocation);
-        } else {
-          throw new Error('Invalid bishop move');
-        }
-        break;
-      case 'queen':
-        if (this.isValidQueenMove(newLocation)) {
-          this.setLocation(newLocation);
-        } else {
-          throw new Error('Invalid queen move');
-        }
-        break;
-      case 'king':
-        if (this.isValidKingMove(newLocation)) {
-          this.setLocation(newLocation);
-        } else {
-          throw new Error('Invalid king move');
-        }
-        break;
-      default:
-        throw new Error('Unknown piece type');
-    }
-    // Logic to move the piece to a new location
-    this.setLocation(newLocation);
+  canMove(currentLocation, newLocation) {
+  switch (this.type) {
+    case 'pawn':
+      if (this.isValidPawnMove(currentLocation, newLocation)) {
+        return true;
+      } else {
+        throw new Error('this is not a valid pawn move');
+      }
+    case 'rook':
+      if (this.isValidRookMove(newLocation)) {
+        return true;
+      } else {
+        throw new Error('Invalid rook move');
+      }
+    case 'knight':
+      if (this.isValidKnightMove(newLocation)) {
+        return true;
+      } else {
+        throw new Error('Invalid knight move');
+      }
+    case 'bishop':
+      if (this.isValidBishopMove(newLocation)) {
+        return true;
+      } else {
+        throw new Error('Invalid bishop move');
+      }
+    case 'queen':
+      if (this.isValidQueenMove(newLocation)) {
+        return true;
+      } else {
+        throw new Error('Invalid queen move');
+      }
+    case 'king':
+      if (this.isValidKingMove(newLocation)) {
+        return true;
+      } else {
+        throw new Error('Invalid king move');
+      }
+    default:
+      throw new Error('Unknown piece type');
   }
+}
 
-  isValidPawnMove(newLocation) {
-    // Logic specific to pawn movement
+  isValidPawnMove(currentLocation, newLocation) {
+    console.log("checking pawn move");
+    console.log("currentLocation:", currentLocation);
+    console.log("newLocation:", newLocation);
+    // If the pawn is black
+    if(this.color === 'black') {
+    console.log("checking black pawn move");
+    if(currentLocation.row === 1  && newLocation.row === 3 && currentLocation.col === newLocation.col) {
+      return true;
+    } else if (newLocation.row === currentLocation.row + 1 && newLocation.col === currentLocation.col) {
+      return true;
+    }
+    }
+    // If the pawn is white
+    else{
+      console.log("checking white pawn move");
+ 
+    if(currentLocation.row === 6 && newLocation.row === 4 && currentLocation.col === newLocation.col) {
+      return true;
+    } else if (newLocation.row === currentLocation.row - 1 && newLocation.col === currentLocation.col) {
+      return true;
+    }
+
+    }
+    return false;
+}
+isValidPawnCapture(currentLocation, newLocation) {
+  // If the pawn is black
+  if (this.color === 'black') {
+    if (
+  newLocation.row === currentLocation.row - 1 &&
+  Math.abs(newLocation.col - currentLocation.col) === 1
+) {
+  return true; // Black pawn capturing diagonally
+}
+  }
+    // If the pawn is white
+  else{
+
+    if (newLocation.row === currentLocation.row + 1 && Math.abs(newLocation.col - currentLocation.col) === 1) {
+      return true;
+    }
+  }
+  return false;
+
   }
   isValidRookMove(newLocation) {
     // Logic specific to rook movement
@@ -92,24 +132,4 @@
 
 }
 
-export default function Piece(color, type, location) {
-  this.color = color; // e.g., 'white' or 'black'
-  this.type = type; // e.g., 'pawn', 'rook', etc.
-  this.location = location; // e.g., { row: 0, col: 0 }
-
-  this.getColor = function() {
-    return this.color;
-  };
-
-  this.getType = function() {
-    return this.type;
-  };
-
-  this.getLocation = function() {
-    return this.location;
-  };
-
-  this.setLocation = function(newLocation) {
-    this.location = newLocation;
-  };
-}
+export default  Piece;
