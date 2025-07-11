@@ -85,12 +85,12 @@ export default function Chessboard() {
 }
 
   function handleSquareClick(row, col, piece) {
-    console.log("Clicked:", row, col, piece);
     if (selected) {
       const { row: fromRow, col: fromCol, piece: selectedPiece } = selected;
-      const targetPiece = board[row][col]; // Get the piece at the destination
+      const targetPiece = board[row][col];
+      const from = { row: fromRow, col: fromCol };
+      const to = { row, col };
 
-      // Don't allow moving to the same square
       if (fromRow === row && fromCol === col) {
         setSelected(null);
         return;
@@ -103,14 +103,16 @@ export default function Chessboard() {
         // If destination has a piece
         else if (targetPiece) {
           if (targetPiece.color === selectedPiece.color) {
-            // Can't capture your own piece
             console.error("You can't capture your own piece.");
           } else {
-            // Attempt capture (for pawns, use isValidPawnCapture; for others, use canMove)
+            // Sliding pieces: check path
             if (
-              selectedPiece.getType() === "pawn"
-                ? selectedPiece.isValidPawnCapture(selectedPiece.getLocation(), { row, col })
-                : selectedPiece.canMove(selectedPiece.getLocation(), { row, col })
+              (["rook", "bishop", "queen"].includes(selectedPiece.getType()) &&
+                selectedPiece.canMove(from, to) &&
+                isPathClear(board, from, to)) ||
+              // Pawn capture
+              (selectedPiece.getType() === "pawn" &&
+                selectedPiece.isValidPawnCapture(from, to))
             ) {
               movePiece(fromRow, fromCol, row, col);
               console.log("Captured piece at", row, col);
@@ -122,9 +124,13 @@ export default function Chessboard() {
         // If destination is empty
         else {
           if (
-            selectedPiece.getType() === "pawn"
-              ? selectedPiece.isValidPawnMove(selectedPiece.getLocation(), { row, col })
-              : selectedPiece.canMove(selectedPiece.getLocation(), { row, col })
+            (["rook", "bishop", "queen"].includes(selectedPiece.getType()) &&
+              selectedPiece.canMove(from, to) &&
+              isPathClear(board, from, to)) ||
+            (selectedPiece.getType() === "pawn" &&
+              selectedPiece.isValidPawnMove(from, to)) ||
+            (["king", "knight"].includes(selectedPiece.getType()) &&
+              selectedPiece.canMove(from, to))
           ) {
             movePiece(fromRow, fromCol, row, col);
             console.log("Moved piece from", fromRow, fromCol, "to", row, col);
@@ -140,6 +146,23 @@ export default function Chessboard() {
       setSelected({ row, col, piece });
       console.log("Selected piece at", row, col);
     }
+  }
+
+  function isPathClear(board, from, to) {
+    const dRow = Math.sign(to.row - from.row);
+    const dCol = Math.sign(to.col - from.col);
+
+    let currRow = from.row + dRow;
+    let currCol = from.col + dCol;
+
+    while (currRow !== to.row || currCol !== to.col) {
+      if (board[currRow][currCol]) {
+        return false; // There is a piece in the way
+      }
+      if (currRow !== to.row) currRow += dRow;
+      if (currCol !== to.col) currCol += dCol;
+    }
+    return true;
   }
 
   return (
