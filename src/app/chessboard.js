@@ -98,12 +98,12 @@ export default function Chessboard() {
 
       try {
         if (selectedPiece.color !== turn) {
-          console.error("You can only move your own pieces.");
+          alert("You can only move your own pieces.");
         }
         // If destination has a piece
         else if (targetPiece) {
           if (targetPiece.color === selectedPiece.color) {
-            console.error("You can't capture your own piece.");
+            alert("You can't capture your own piece.");
           } else {
             // Sliding pieces: check path
             if (
@@ -116,8 +116,15 @@ export default function Chessboard() {
             ) {
               movePiece(fromRow, fromCol, row, col);
               console.log("Captured piece at", row, col);
+              if (turn === "white"){
+                isCheck("black")
+
+              } else{
+                isCheck("white")
+              }
+  
             } else {
-              console.error("Invalid capture move.");
+              alert("Invalid capture move.");
             }
           }
         }
@@ -134,6 +141,12 @@ export default function Chessboard() {
           ) {
             movePiece(fromRow, fromCol, row, col);
             console.log("Moved piece from", fromRow, fromCol, "to", row, col);
+            if (turn === "white"){
+                isCheck("black")
+
+              } else{
+                isCheck("white")
+              }
           } else {
             console.error("Invalid move.");
           }
@@ -159,11 +172,50 @@ export default function Chessboard() {
       if (board[currRow][currCol]) {
         return false; // There is a piece in the way
       }
-      if (currRow !== to.row) currRow += dRow;
-      if (currCol !== to.col) currCol += dCol;
+      currRow += dRow;
+      currCol += dCol;
     }
     return true;
   }
+
+ function isCheck(color){
+ const kingLocation = findKing(color);
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+      const from= {row,col}
+      const to = {row: kingLocation.row, col: kingLocation.col}
+      if(piece){
+        if (piece.canMove(from, to)) {
+        console.log("king is in check");
+        return { row, col };
+      } else{
+        console.log("not in check")
+      }
+
+      }
+      
+    }
+  }
+  return null; // King not found
+  
+ }
+ function findKing(color) {
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+      if (
+        piece &&
+        piece.getType() === "king" &&
+        piece.color === color
+      ) {
+        console.log("king is at " + row + "," + col);
+        return { row, col };
+      }
+    }
+  }
+  return null; // King not found
+}
 
   return (
   <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
