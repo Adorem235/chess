@@ -29,38 +29,26 @@ class Piece {
     case 'pawn':
       if (this.isValidPawnMove(currentLocation, newLocation)) {
         return true;
-      } else {
-        throw new Error('this is not a valid pawn move');
       }
     case 'rook':
       if (this.isValidRookMove(currentLocation,newLocation)) {
         return true;
-      } else {
-        throw new Error('Invalid rook move');
       }
     case 'knight':
       if (this.isValidKnightMove(currentLocation,newLocation)) {
         return true;
-      } else {
-        throw new Error('Invalid knight move');
       }
     case 'bishop':
       if (this.isValidBishopMove(currentLocation,newLocation)) {
         return true;
-      } else {
-        throw new Error('Invalid bishop move');
       }
     case 'queen':
       if (this.isValidQueenMove(currentLocation,newLocation)) {
         return true;
-      } else {
-        throw new Error('Invalid queen move');
       }
     case 'king':
       if (this.isValidKingMove(currentLocation,newLocation)) {
         return true;
-      } else {
-        throw new Error('Invalid king move');
       }
     default:
       throw new Error('Unknown piece type');
