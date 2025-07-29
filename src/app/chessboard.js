@@ -80,6 +80,12 @@ export default function Chessboard() {
       return;
     }
 
+    if (piece && piece.color === turn && piece !== selectedPiece) {
+      setSelected({ row, col, piece });
+      return;
+    }
+
+
     if (selectedPiece.color !== turn) {
       alert("You can only move your own pieces.");
       setSelected(null);
