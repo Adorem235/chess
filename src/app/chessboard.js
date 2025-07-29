@@ -6,6 +6,7 @@ import Piece from "./piece";
 export default function Chessboard() {
   // Initialize an 8x8 board with pawns for demonstration
   const [turn, setTurn] = useState("white");
+  const [inCheck, setCheck]= useState();
   const [board, setBoard] = useState(
     Array(8)
       .fill(null)
@@ -64,102 +65,82 @@ export default function Chessboard() {
   }
 
   // Remove a piece at a specific square
-  function removePiece(row, col) {
-    setPiece(row, col, null);
-  }
-  function movePiece(fromRow, fromCol, toRow, toCol) {
-  setBoard(prev => {
-    const piece = prev[fromRow][fromCol];
-    if (!piece) return prev;
-    const newPiece = new Piece(piece.color, piece.type, { row: toRow, col: toCol });
-    const newBoard = prev.map((row, i) =>
-      row.map((sq, j) => {
-        if (i === fromRow && j === fromCol) return null;
-        if (i === toRow && j === toCol) return newPiece;
-        return sq;
-      })
-    );
-    return newBoard;
-  });
-  setTurn(prevTurn => (prevTurn === "white" ? "black" : "white"));
-}
+
+
 
   function handleSquareClick(row, col, piece) {
-    if (selected) {
-      const { row: fromRow, col: fromCol, piece: selectedPiece } = selected;
-      const targetPiece = board[row][col];
-      const from = { row: fromRow, col: fromCol };
-      const to = { row, col };
+  if (selected) {
+    const { row: fromRow, col: fromCol, piece: selectedPiece } = selected;
+    const targetPiece = board[row][col];
+    const from = { row: fromRow, col: fromCol };
+    const to = { row, col };
 
-      if (fromRow === row && fromCol === col) {
-        setSelected(null);
-        return;
-      }
-
-      try {
-        if (selectedPiece.color !== turn) {
-          alert("You can only move your own pieces.");
-        }
-        // If destination has a piece
-        else if (targetPiece) {
-          if (targetPiece.color === selectedPiece.color) {
-            alert("You can't capture your own piece.");
-          } else {
-            // Sliding pieces: check path
-            if (
-              (["rook", "bishop", "queen"].includes(selectedPiece.getType()) &&
-                selectedPiece.canMove(from, to) &&
-                isPathClear(board, from, to)) ||
-              // Pawn capture
-              (selectedPiece.getType() === "pawn" &&
-                selectedPiece.isValidPawnCapture(from, to))
-            ) {
-              movePiece(fromRow, fromCol, row, col);
-              console.log("Captured piece at", row, col);
-              if (turn === "white"){
-                isCheck("black")
-
-              } else{
-                isCheck("white")
-              }
-  
-            } else {
-              alert("Invalid capture move.");
-            }
-          }
-        }
-        // If destination is empty
-        else {
-          if (
-            (["rook", "bishop", "queen"].includes(selectedPiece.getType()) &&
-              selectedPiece.canMove(from, to) &&
-              isPathClear(board, from, to)) ||
-            (selectedPiece.getType() === "pawn" &&
-              selectedPiece.isValidPawnMove(from, to)) ||
-            (["king", "knight"].includes(selectedPiece.getType()) &&
-              selectedPiece.canMove(from, to))
-          ) {
-            movePiece(fromRow, fromCol, row, col);
-            console.log("Moved piece from", fromRow, fromCol, "to", row, col);
-            if (turn === "white"){
-                isCheck("black")
-
-              } else{
-                isCheck("white")
-              }
-          } else {
-            console.error("Invalid move.");
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
+    if (fromRow === row && fromCol === col) {
       setSelected(null);
-    } else if (piece) {
-      setSelected({ row, col, piece });
-      console.log("Selected piece at", row, col);
+      return;
     }
+
+    if (selectedPiece.color !== turn) {
+      alert("You can only move your own pieces.");
+      setSelected(null);
+      return;
+    }
+
+    const canMove = selectedPiece.canMove(from, to);
+    const isSlidingPiece = ["rook", "bishop", "queen"].includes(selectedPiece.getType());
+    const isEmptyDestination = !targetPiece;
+    const isEnemy = targetPiece && targetPiece.color !== selectedPiece.color;
+
+    let validMove = false;
+
+    // Determine if move is valid
+    if (isEnemy) {
+      if (
+        (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
+        (selectedPiece.getType() === "pawn" && selectedPiece.isValidPawnCapture(from, to))
+      ) {
+        validMove = true;
+      } else {
+        alert("Invalid capture move.");
+      }
+    } else if (isEmptyDestination) {
+      if (
+        (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
+        (selectedPiece.getType() === "pawn" && selectedPiece.isValidPawnMove(from, to)) ||
+        (["king", "knight"].includes(selectedPiece.getType()) && canMove)
+      ) {
+        validMove = true;
+      } else {
+        alert("Invalid move.");
+      }
+    } else {
+      alert("You can't capture your own piece.");
+    }
+
+    if (validMove) {
+      // Update board and check for check on opponent
+      const newBoard = board.map((r, i) =>
+        r.map((sq, j) => {
+          if (i === fromRow && j === fromCol) return null;
+          if (i === row && j === col)
+            return new Piece(selectedPiece.color, selectedPiece.getType(), { row, col });
+          return sq;
+        })
+      );
+
+      setBoard(newBoard);
+      const nextTurn = turn === "white" ? "black" : "white";
+      setTurn(nextTurn);
+      isCheck(newBoard, nextTurn); // check if next player is in check
+    }
+
+    setSelected(null);
+  } else if (piece && piece.color === turn) {
+    setSelected({ row, col, piece });
+    console.log("Selected piece at", row, col);
   }
+}
+
 
   function isPathClear(board, from, to) {
     const dRow = Math.sign(to.row - from.row);
@@ -178,28 +159,35 @@ export default function Chessboard() {
     return true;
   }
 
- function isCheck(color){
- const kingLocation = findKing(color);
+ function isCheck(board,color) {
+  const kingLocation = findKing(color);
+  if (!kingLocation) {
+    console.log("King not found!");
+    return null;
+  }
+
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       const piece = board[row][col];
-      const from= {row,col}
-      const to = {row: kingLocation.row, col: kingLocation.col}
-      if(piece){
-        if (piece.canMove(from, to)) {
-        console.log("king is in check");
-        return { row, col };
-      } else{
-        console.log("not in check")
-      }
+      const from = { row, col };
+      const to = { row: kingLocation.row, col: kingLocation.col };
 
+      // Skip empty squares or pieces of the same color
+      if (piece && piece.color !== color) {
+        if (piece.canMove(from, to) && isPathClear(board, from, to)) {
+          console.log(piece);
+          console.log("King is in check");
+          setCheck(color);
+          return true;
+        }
       }
-      
     }
   }
-  return null; // King not found
-  
- }
+  setCheck(null);
+
+  console.log("Not in check");
+  return false;
+}
  function findKing(color) {
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
@@ -221,6 +209,7 @@ export default function Chessboard() {
   <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
     <div className="mb-4 text-center">
       <h1 className="text-2xl mb-4">{turn}&apos;s Turn</h1>
+      <h1 className="text-2xl mb-4">{inCheck} is in check</h1>
     </div>
     <div className="grid grid-cols-8 grid-rows-8 gap-0">
       {board.map((rowArr, i) =>
