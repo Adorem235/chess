@@ -128,13 +128,13 @@ export default function Chessboard() {
         })
       );
 
+      setSelected(null);
       setBoard(newBoard);
       const nextTurn = turn === "white" ? "black" : "white";
       setTurn(nextTurn);
-      isCheck(newBoard, nextTurn); // check if next player is in check
+      isCheck(newBoard, nextTurn);
     }
 
-    setSelected(null);
   } else if (piece && piece.color === turn) {
     setSelected({ row, col, piece });
     console.log("Selected piece at", row, col);
@@ -159,8 +159,8 @@ export default function Chessboard() {
     return true;
   }
 
- function isCheck(board,color) {
-  const kingLocation = findKing(color);
+ function isCheck(board, color) {
+  const kingLocation = findKing(board, color);
   if (!kingLocation) {
     console.log("King not found!");
     return null;
@@ -172,23 +172,22 @@ export default function Chessboard() {
       const from = { row, col };
       const to = { row: kingLocation.row, col: kingLocation.col };
 
-      // Skip empty squares or pieces of the same color
       if (piece && piece.color !== color) {
         if (piece.canMove(from, to) && isPathClear(board, from, to)) {
-          console.log(piece);
-          console.log("King is in check");
+          console.log("King is in check from", piece);
           setCheck(color);
           return true;
         }
       }
     }
   }
-  setCheck(null);
 
-  console.log("Not in check");
+  setCheck(null);
+  console.log(color + " is not in check");
   return false;
 }
- function findKing(color) {
+
+ function findKing(board, color) {
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       const piece = board[row][col];

@@ -51,7 +51,7 @@ class Piece {
         return true;
       }
     default:
-      throw new Error('Unknown piece type');
+      return false;
   }
 }
 
