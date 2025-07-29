@@ -25,35 +25,24 @@ class Piece {
   
 
   canMove(currentLocation, newLocation) {
-  switch (this.type) {
-    case 'pawn':
-      if (this.isValidPawnMove(currentLocation, newLocation)) {
-        return true;
-      }
-    case 'rook':
-      if (this.isValidRookMove(currentLocation,newLocation)) {
-        return true;
-      }
-    case 'knight':
-      if (this.isValidKnightMove(currentLocation,newLocation)) {
-        return true;
-      }
-    case 'bishop':
-      if (this.isValidBishopMove(currentLocation,newLocation)) {
-        return true;
-      }
-    case 'queen':
-      if (this.isValidQueenMove(currentLocation,newLocation)) {
-        return true;
-      }
-    case 'king':
-      if (this.isValidKingMove(currentLocation,newLocation)) {
-        return true;
-      }
-    default:
-      return false;
+    switch (this.type) {
+      case 'pawn':
+        return this.isValidPawnMove(currentLocation, newLocation);
+      case 'rook':
+        return this.isValidRookMove(currentLocation, newLocation);
+      case 'knight':
+        return this.isValidKnightMove(currentLocation, newLocation);
+      case 'bishop':
+        return this.isValidBishopMove(currentLocation, newLocation);
+      case 'queen':
+        return this.isValidQueenMove(currentLocation, newLocation);
+      case 'king':
+        return this.isValidKingMove(currentLocation, newLocation);
+      default:
+        return false;
+    }
   }
-}
+
 
   isValidPawnMove(currentLocation, newLocation) {
     // If the pawn is black
@@ -102,10 +91,12 @@ isValidPawnCapture(currentLocation, newLocation) {
     }
   }
   isValidKnightMove(currentLocation,newLocation) {
+    console.log("checking");
     if (
       (Math.abs(currentLocation.row - newLocation.row) === 2 && Math.abs(currentLocation.col - newLocation.col) === 1) ||
       (Math.abs(currentLocation.row - newLocation.row) === 1 && Math.abs(currentLocation.col - newLocation.col) === 2)
     ) {
+      
       return true;
     }
   }
