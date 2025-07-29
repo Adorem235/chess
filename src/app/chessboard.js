@@ -133,12 +133,21 @@ export default function Chessboard() {
           return sq;
         })
       );
+      if(isCheck(newBoard, turn)) {
+        alert("you are in check");
+        setSelected(null);
+        return false;
+      } else{
+        
+        setSelected(null);
+        setBoard(newBoard);
+        const nextTurn = turn === "white" ? "black" : "white";
+        setTurn(nextTurn);
+        isCheck(newBoard, nextTurn);
 
-      setSelected(null);
-      setBoard(newBoard);
-      const nextTurn = turn === "white" ? "black" : "white";
-      setTurn(nextTurn);
-      isCheck(newBoard, nextTurn);
+      }
+
+      
     }
 
   } else if (piece && piece.color === turn) {
