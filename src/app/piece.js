@@ -3,6 +3,7 @@ class Piece {
     this.color = color; // e.g., 'white' or 'black'
     this.location = location; // e.g., { row: 0, col: 0 }
     this.type = type; // e.g., 'pawn', 'rook', 'knight', etc.
+    this.hasMoved= false;
 
   }
     getLocation() {
@@ -21,6 +22,15 @@ class Piece {
 
   toString() {
     return `${this.color} ${this.type}`;
+  }
+
+  getHasMoved(){
+    return this.hasMoved;
+  }
+  hasMoved(){
+    if(!this.hasMoved){
+      this.hasMoved = true;
+    }
   }
   
 
@@ -93,7 +103,6 @@ isValidPawnCapture(currentLocation, newLocation) {
     return false;
   }
   isValidKnightMove(currentLocation,newLocation) {
-    console.log("checking");
     if (
       (Math.abs(currentLocation.row - newLocation.row) === 2 && Math.abs(currentLocation.col - newLocation.col) === 1) ||
       (Math.abs(currentLocation.row - newLocation.row) === 1 && Math.abs(currentLocation.col - newLocation.col) === 2)
