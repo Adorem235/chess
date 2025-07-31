@@ -99,7 +99,9 @@ export default function Chessboard() {
 
     let validMove = false;
 
-    // Determine if move is valid
+    /* Determine if move is valid */
+
+    //Capturing logic
     if (isEnemy) {
       if (
         (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
@@ -125,6 +127,11 @@ export default function Chessboard() {
     }
 
     if (validMove) {
+      const testBoard = simulateMove(board, from, to);
+      if (isCheck(testBoard, selectedPiece.color)) {
+        alert("You can't move into check.");
+        return;
+      }
       // Update board and check for check on opponent
       const newBoard = board.map((r, i) =>
         r.map((sq, j) => {
@@ -173,6 +180,25 @@ export default function Chessboard() {
       currCol += dCol;
     }
     return true;
+  }
+  function simulateMove(board, from, to){
+    const clonedBoard = board.map(row =>
+    row.map(cell => cell ? Object.assign(Object.create(Object.getPrototypeOf(cell)), cell) : null)
+  );
+
+  const movingPiece = clonedBoard[from.row][from.col];
+
+  const capturedPiece = clonedBoard[to.row][to.col];
+
+  clonedBoard[to.row][to.col] = movingPiece;
+  clonedBoard[from.row][from.col] = null;
+  if (movingPiece) {
+    movingPiece.setLocation({ row: to.row, col: to.col });
+  }
+
+   return clonedBoard;
+
+
   }
 
  function isCheck(board, color) {
