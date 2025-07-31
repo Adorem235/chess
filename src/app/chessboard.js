@@ -103,7 +103,8 @@ export default function Chessboard() {
     if (isEnemy) {
       if (
         (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
-        (selectedPiece.getType() === "pawn" && selectedPiece.isValidPawnCapture(from, to))
+        (selectedPiece.getType() === "pawn" && selectedPiece.isValidPawnCapture(from, to)) ||
+        (selectedPiece.getType()=== "king" && canMove)
       ) {
         validMove = true;
       } else {
