@@ -274,6 +274,14 @@ function canCastle(board, color, from, to){
 
     if(to.col < from.col){
       // Queenside Castle
+      for(let i=2; i<4; i++){
+        const testBoard = simulateMove(board, kingStart, {row: 7, col: i});
+        if (isCheck(testBoard, selectedPiece.color)) {
+          alert("You can't castle through check.");
+          return;
+      }
+
+      }
       if(
         (queensCorner.getType() === "rook" && !queensCorner.getHasMoved()) &&
         (kingStart.getType() === "king" && !kingStart.getHasMoved())
@@ -290,6 +298,14 @@ function canCastle(board, color, from, to){
     }
     else{
         //kingside castle
+        for(let i=5; i<7; i++){
+        const testBoard = simulateMove(board, kingStart, {row: 7, col: i});
+        if (isCheck(testBoard, color)) {
+          alert("You can't castle through check.");
+          return;
+      }
+
+      }
       if(
         (kingsCorner.getType() === "rook" && !kingsCorner.getHasMoved()) &&
         (kingStart.getType() === "king" && !kingStart.getHasMoved())
@@ -316,6 +332,14 @@ function canCastle(board, color, from, to){
     let validCastle = false;
     if(to.col < from.col){
         // QueenSide Castle
+        for(let i=2; i<4 ; i++){
+        const testBoard = simulateMove(board, kingStart, {row: 0, col: i});
+        if (isCheck(testBoard, color)) {
+          alert("You can't castle through check.");
+          return;
+      }
+
+        }
       if(
         (queensCorner.getType() === "rook" && !queensCorner.getHasMoved()) &&
         (kingStart.getType() === "king" && !kingStart.getHasMoved())
@@ -331,6 +355,15 @@ function canCastle(board, color, from, to){
       }
     } else{
       //Kingside Castle
+      for(let i=5; i<7; i++){
+        const testBoard = simulateMove(board, kingStart, {row: 0, col: i});
+        if (isCheck(testBoard, color)) {
+          alert("You can't castle through check.");
+          return;
+      }
+
+      }
+
       if(
         (kingsCorner.getType() === "rook" && !kingsCorner.getHasMoved()) &&
         (kingStart.getType() === "king" && !kingStart.getHasMoved())
