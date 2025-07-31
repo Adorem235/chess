@@ -178,18 +178,29 @@ export default function Chessboard() {
   const kingLocation = findKing(board, color);
   if (!kingLocation) {
     console.log("King not found!");
-    return null;
+    return false;
   }
 
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       const piece = board[row][col];
-      const from = { row, col };
-      const to = { row: kingLocation.row, col: kingLocation.col };
+      if (!piece) continue;
 
-      if (piece && piece.color !== color) {
-        if (piece.canMove(from, to) && isPathClear(board, from, to)) {
-          console.log("King is in check from", piece);
+      if (piece.color !== color) {
+        const from = { row, col };
+        const to = { row: kingLocation.row, col: kingLocation.col };
+        const type = piece.getType?.() || piece.type;
+
+        const canThreaten =
+          (type === "knight" && piece.canMove(from, to)) ||
+          (type === "pawn" && piece.isValidPawnCapture?.(from, to)) ||
+          (["rook", "bishop", "queen"].includes(type) &&
+            piece.canMove(from, to) &&
+            isPathClear(board, from, to)) ||
+          (type === "king" && piece.canMove(from, to));
+
+        if (canThreaten) {
+          console.log(`King is in check from ${type} at ${row},${col}`);
           setCheck(color);
           return true;
         }
@@ -198,9 +209,10 @@ export default function Chessboard() {
   }
 
   setCheck(null);
-  console.log(color + " is not in check");
+  console.log(`${color} is not in check`);
   return false;
 }
+
 
  function findKing(board, color) {
   for (let row = 0; row < 8; row++) {
