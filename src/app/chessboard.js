@@ -268,12 +268,11 @@ function canCastle(board, color, from, to){
     const queensCorner = board[7][0];
     const kingsCorner = board[7][7];
     const kingStart = board[7][4];
-    let validQueensideCastle = false;
-    let validKingsideCastle = false;
+    let validCastle = false;
     const queenSideCastle = {from: {row:7, col:0}, to: {row: 7, col: 4} }
     const kingSideCastle = {from: {row:7, col:7}, to: {row: 7, col: 4} }
 
-    if(from.col - to.col < 1){
+    if(to.col < from.col){
       // Queenside Castle
       if(
         (queensCorner.getType() === "rook" && !queensCorner.getHasMoved()) &&
@@ -282,11 +281,11 @@ function canCastle(board, color, from, to){
         console.log(isPathClear(board,queenSideCastle.from, queenSideCastle.to) + " clear path check")
         if(isPathClear(board,queenSideCastle.from, queenSideCastle.to)){
           console.log("White can castle queenside")
-          validQueensideCastle = true;
+          validCastle = true;
         }
       } else{
         console.log("white cannot castle queenside")
-        validQueensideCastle = false;
+        validCastle = false;
       }
     }
     else{
@@ -298,13 +297,14 @@ function canCastle(board, color, from, to){
         console.log(isPathClear(board,kingSideCastle.from, kingSideCastle.to) + " clear path check")
         if(isPathClear(board,kingSideCastle.from, kingSideCastle.to)){
           console.log("White can castle kingside")
-          validKingsideCastle = true;
+          validCastle = true;
         }
       } else{
         console.log("white cannot castle kingside")
-        return false;
+        validCastle = false;
       }
     }
+    return validCastle;
   }
   //check black castle (black king at 0,4)
   else {
@@ -313,9 +313,8 @@ function canCastle(board, color, from, to){
     const kingStart = board[0][4];
     const queenSideCastle = {from: {row:0, col:0}, to: {row: 0, col: 4} }
     const kingSideCastle = {from: {row:0, col:7}, to: {row: 0, col: 4} }
-    let validQueensideCastle = false;
-    let validKingsideCastle = false;
-    if(from.col - to.col < 1){
+    let validCastle = false;
+    if(to.col < from.col){
         // QueenSide Castle
       if(
         (queensCorner.getType() === "rook" && !queensCorner.getHasMoved()) &&
@@ -324,11 +323,11 @@ function canCastle(board, color, from, to){
         console.log(isPathClear(board,queenSideCastle.from, queenSideCastle.to) + " clear path check")
         if(isPathClear(board,queenSideCastle.from, queenSideCastle.to)){
           console.log("black can castle queenside")
-          validQueensideCastle = true;
+          validCastle = true;
         }
       }else{
         console.log("black cannot castle")
-        return false;
+        validCastle =  false;
       }
     } else{
       //Kingside Castle
@@ -339,13 +338,14 @@ function canCastle(board, color, from, to){
         console.log(isPathClear(board,kingSideCastle.from, kingSideCastle.to) + " clear path check")
         if(isPathClear(board,kingSideCastle.from, kingSideCastle.to)){
           console.log("Black can castle kingside")
-          validKingsideCastle = true;
+          validCastle = true;
         }
       } else{
         console.log("Black cannot castle kingside")
-        return false;
+        validCastle =  false;
       }
       }
+      return validCastle;
   }
 
 
