@@ -52,6 +52,7 @@ class Piece {
     } else if (newLocation.row === currentLocation.row + 1 && newLocation.col === currentLocation.col) {
       return true;
     }
+    return false;
     }
     // If the pawn is white
     else{
@@ -89,6 +90,7 @@ isValidPawnCapture(currentLocation, newLocation) {
     if( currentLocation.row == newLocation.row || currentLocation.col == newLocation.col) {
       return true;
     }
+    return false;
   }
   isValidKnightMove(currentLocation,newLocation) {
     console.log("checking");
@@ -99,6 +101,7 @@ isValidPawnCapture(currentLocation, newLocation) {
       
       return true;
     }
+    return false;
   }
   isValidBishopMove(currentLocation,newLocation) {
     if (
@@ -106,6 +109,7 @@ isValidPawnCapture(currentLocation, newLocation) {
     ) {
       return true;
     }
+    return false;
   }
   isValidQueenMove(currentLocation,newLocation) {
     if (
@@ -114,7 +118,7 @@ isValidPawnCapture(currentLocation, newLocation) {
     ) {
       return true;
     }
-    // Logic specific to queen movement
+    return false;
   }
   isValidKingMove(currentLocation,newLocation) {
     // Logic specific to king movement
@@ -124,6 +128,7 @@ isValidPawnCapture(currentLocation, newLocation) {
     ) {
       return true;
     }
+    return false;
   }
 
 
