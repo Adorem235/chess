@@ -261,88 +261,91 @@ export default function Chessboard() {
   return null; // King not found
 }
 function canCastle(board, color, from, to){
+  
+
   //check white castle (white king at 7,4)
   if(color === "white"){
     const queensCorner = board[7][0];
     const kingsCorner = board[7][7];
     const kingStart = board[7][4];
-    console.log(queensCorner)
-    console.log(kingStart.color + " " + kingStart.getType())
+    let validQueensideCastle = false;
+    let validKingsideCastle = false;
     const queenSideCastle = {from: {row:7, col:0}, to: {row: 7, col: 4} }
     const kingSideCastle = {from: {row:7, col:7}, to: {row: 7, col: 4} }
-// Queenside Castle
-    if(
-      (queensCorner.getType() === "rook" && !queensCorner.getHasMoved()) &&
-      (kingStart.getType() === "king" && !kingStart.getHasMoved())
-    ){
-      console.log(isPathClear(board,queenSideCastle.from, queenSideCastle.to) + " clear path check")
-      if(isPathClear(board,queenSideCastle.from, queenSideCastle.to)){
-        console.log("White can castle queenside")
-        return true;
+
+    if(from.col - to.col < 1){
+      // Queenside Castle
+      if(
+        (queensCorner.getType() === "rook" && !queensCorner.getHasMoved()) &&
+        (kingStart.getType() === "king" && !kingStart.getHasMoved())
+      ){
+        console.log(isPathClear(board,queenSideCastle.from, queenSideCastle.to) + " clear path check")
+        if(isPathClear(board,queenSideCastle.from, queenSideCastle.to)){
+          console.log("White can castle queenside")
+          validQueensideCastle = true;
+        }
+      } else{
+        console.log("white cannot castle queenside")
+        validQueensideCastle = false;
       }
-    } else{
-      console.log("white cannot castle queenside")
-      return false;
     }
-
-    //kingside castle
-    if(
-      (kingsCorner.getType() === "rook" && !kingsCorner.getHasMoved()) &&
-      (kingStart.getType() === "king" && !kingStart.getHasMoved())
-    ){
-      console.log(isPathClear(board,kingSideCastle.from, kingSideCastle.to) + " clear path check")
-      if(isPathClear(board,kingSideCastle.from, kingSideCastle.to)){
-        console.log("White can castle kingside")
-        return true;
+    else{
+        //kingside castle
+      if(
+        (kingsCorner.getType() === "rook" && !kingsCorner.getHasMoved()) &&
+        (kingStart.getType() === "king" && !kingStart.getHasMoved())
+      ){
+        console.log(isPathClear(board,kingSideCastle.from, kingSideCastle.to) + " clear path check")
+        if(isPathClear(board,kingSideCastle.from, kingSideCastle.to)){
+          console.log("White can castle kingside")
+          validKingsideCastle = true;
+        }
+      } else{
+        console.log("white cannot castle kingside")
+        return false;
       }
-    } else{
-      console.log("white cannot castle kingside")
-      return false;
     }
-
-
-
-
   }
   //check black castle (black king at 0,4)
   else {
-   const queensCorner = board[0][0]
-   const kingsCorner = board[0][7]
-   const kingStart = board[0][4];
-    const fr = {row:0, col:0}
-    const t = {row: 0, col: 4}
-    console.log(kingStart.color + " " + kingStart.getType())
+    const queensCorner = board[0][0]
+    const kingsCorner = board[0][7]
+    const kingStart = board[0][4];
     const queenSideCastle = {from: {row:0, col:0}, to: {row: 0, col: 4} }
     const kingSideCastle = {from: {row:0, col:7}, to: {row: 0, col: 4} }
-
-    if(
-      (queensCorner.getType() === "rook" && !queensCorner.getHasMoved()) &&
-      (kingStart.getType() === "king" && !kingStart.getHasMoved())
-    ){
-      console.log(isPathClear(board,queenSideCastle.from, queenSideCastle.to) + " clear path check")
-      if(isPathClear(board,queenSideCastle.from, queenSideCastle.to)){
-        console.log("black can castle queenside")
-        return true;
-      }
-    }else{
-      console.log("black cannot castle")
-      return false;
-    }
-
-    if(
-      (kingsCorner.getType() === "rook" && !kingsCorner.getHasMoved()) &&
-      (kingStart.getType() === "king" && !kingStart.getHasMoved())
-    ){
-      console.log(isPathClear(board,kingSideCastle.from, kingSideCastle.to) + " clear path check")
-      if(isPathClear(board,kingSideCastle.from, kingSideCastle.to)){
-        console.log("Black can castle kingside")
-        return true;
+    let validQueensideCastle = false;
+    let validKingsideCastle = false;
+    if(from.col - to.col < 1){
+        // QueenSide Castle
+      if(
+        (queensCorner.getType() === "rook" && !queensCorner.getHasMoved()) &&
+        (kingStart.getType() === "king" && !kingStart.getHasMoved())
+      ){
+        console.log(isPathClear(board,queenSideCastle.from, queenSideCastle.to) + " clear path check")
+        if(isPathClear(board,queenSideCastle.from, queenSideCastle.to)){
+          console.log("black can castle queenside")
+          validQueensideCastle = true;
+        }
+      }else{
+        console.log("black cannot castle")
+        return false;
       }
     } else{
-      console.log("Black cannot castle kingside")
-      return false;
-    }
-
+      //Kingside Castle
+      if(
+        (kingsCorner.getType() === "rook" && !kingsCorner.getHasMoved()) &&
+        (kingStart.getType() === "king" && !kingStart.getHasMoved())
+      ){
+        console.log(isPathClear(board,kingSideCastle.from, kingSideCastle.to) + " clear path check")
+        if(isPathClear(board,kingSideCastle.from, kingSideCastle.to)){
+          console.log("Black can castle kingside")
+          validKingsideCastle = true;
+        }
+      } else{
+        console.log("Black cannot castle kingside")
+        return false;
+      }
+      }
   }
 
 
