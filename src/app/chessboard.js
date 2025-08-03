@@ -5,6 +5,7 @@ import Piece from "./piece";
 
 export default function Chessboard() {
   // Initialize an 8x8 board with pawns for demonstration
+  const [prevMove, setPrevMove] = useState();
   const [turn, setTurn] = useState("white");
   const [inCheck, setCheck]= useState();
   const [board, setBoard] = useState(
@@ -109,7 +110,7 @@ function handleSquareClick(row, col, piece) {
         return sq;
       })
     );
-    
+
     if (selectedPiece.getType() === "king" && Math.abs(to.col - from.col) === 2) {
       const row = from.row;
 
@@ -136,14 +137,30 @@ function handleSquareClick(row, col, piece) {
       movedPiece.setHasMoved();
     }
 
+    if (
+      selectedPiece.getType() === "pawn" &&
+      enPassant(board, selectedPiece, to, from, prevMove)
+    ) {
+      const direction = selectedPiece.color === "white" ? 1 : -1;
+      newBoard[to.row + direction][to.col] = null; // remove captured pawn
+    }
+
     if (isCheck(newBoard, turn)) {
       alert("You are in check.");
       setSelected(null);
       return;
     }
+    setPrevMove({
+      from,
+      to,
+      piece: selectedPiece.getType(),
+      color: selectedPiece.color,
+    });
+    console.log(prevMove)
 
     setSelected(null);
     setBoard(newBoard);
+    
     setTurn(turn === "white" ? "black" : "white");
   } else if (piece && piece.color === turn) {
     setSelected({ row, col, piece });
@@ -178,6 +195,11 @@ function isValidMove(board, from, to, piece) {
       (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
       (piece.getType() === "pawn" && piece.isValidPawnMove(from, to)) ||
       (["king", "knight"].includes(piece.getType()) && canMove)
+    ) return true;
+
+    if (
+      piece.getType() === "pawn" &&
+      enPassant(board, piece, to, from, prevMove)
     ) return true;
   }
 
@@ -358,6 +380,37 @@ function getAllPossibleMoves(board, piece, startLocation){
     return moveList;
 
 }
+
+function enPassant(board, piece, to, from, prevMove) {
+  if (
+    !prevMove ||
+    piece.getType() !== "pawn" ||
+    !piece.isValidPawnCapture(from, to)
+  ) {
+    return false;
+  }
+
+  const lastMovedPieceWasPawn = prevMove.piece === "pawn";
+  const opponentColor = piece.color === "white" ? "black" : "white";
+  const correctColor = prevMove.color === opponentColor;
+  const movedTwoSquares = Math.abs(prevMove.from.row - prevMove.to.row) === 2;
+
+  const sameRow = from.row === prevMove.to.row;
+  const sameCol = to.col === prevMove.to.col;
+
+  if (
+    lastMovedPieceWasPawn &&
+    correctColor &&
+    movedTwoSquares &&
+    sameRow &&
+    sameCol
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 
   return (
   <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
