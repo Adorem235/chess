@@ -68,10 +68,9 @@ export default function Chessboard() {
 
 
 
-  function handleSquareClick(row, col, piece) {
+function handleSquareClick(row, col, piece) {
   if (selected) {
     const { row: fromRow, col: fromCol, piece: selectedPiece } = selected;
-    const targetPiece = board[row][col];
     const from = { row: fromRow, col: fromCol };
     const to = { row, col };
 
@@ -85,92 +84,78 @@ export default function Chessboard() {
       return;
     }
 
-
     if (selectedPiece.color !== turn) {
       alert("You can only move your own pieces.");
       setSelected(null);
       return;
     }
 
-    const canMove = selectedPiece.canMove(from, to);
-    const isSlidingPiece = ["rook", "bishop", "queen"].includes(selectedPiece.getType());
-    const isEmptyDestination = !targetPiece;
-    const isEnemy = targetPiece && targetPiece.color !== selectedPiece.color;
-
-    let validMove = false;
-
-    /* Determine if move is valid */
-
-    //Capturing logic
-    if (isEnemy) {
-      if (
-        (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
-        (selectedPiece.getType() === "pawn" && selectedPiece.isValidPawnCapture(from, to)) ||
-        (selectedPiece.getType()=== "king" && canMove)
-      ) {
-        validMove = true;
-      } else {
-        alert("Invalid capture move.");
-      }
-    } else if (isEmptyDestination) {
-      if (
-        (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
-        (selectedPiece.getType() === "pawn" && selectedPiece.isValidPawnMove(from, to)) ||
-        (["king", "knight"].includes(selectedPiece.getType()) && canMove)
-      ) {
-        validMove = true;
-      } else {
-        alert("Invalid move.");
-      }
-    } else {
-      alert("You can't capture your own piece.");
+    if (!isValidMove(board, from, to, selectedPiece)) {
+      alert("Invalid move.");
+      return;
     }
 
-    if (validMove) {
-
-      // todo: add logic to detect whether the player is trying to castle
-      canCastle(board, turn, from, to);
-
-
-      const testBoard = simulateMove(board, from, to);
-      if (isCheck(testBoard, selectedPiece.color)) {
-        alert("You can't move into check.");
-        return;
-      }
-      // Update board and check for check on opponent
-      const newBoard = board.map((r, i) =>
-        r.map((sq, j) => {
-          if (i === fromRow && j === fromCol) return null;
-          if (i === row && j === col)
-            return new Piece(selectedPiece.color, selectedPiece.getType(), { row, col });
-          return sq;
-        })
-      );
-      if(["king", "rook"].includes(selectedPiece.getType()) && !selectedPiece.getHasMoved()){
-        selectedPiece.hasMoved();
-      }
-      if(isCheck(newBoard, turn)) {
-        alert("you are in check");
-        setSelected(null);
-        return false;
-      } else{
-        
-        setSelected(null);
-        setBoard(newBoard);
-        const nextTurn = turn === "white" ? "black" : "white";
-        setTurn(nextTurn);
-        isCheck(newBoard, nextTurn);
-
-      }
-
-      
+    const testBoard = simulateMove(board, from, to);
+    if (isCheck(testBoard, selectedPiece.color)) {
+      alert("You can't move into check.");
+      return;
     }
 
+    const newBoard = board.map((r, i) =>
+      r.map((sq, j) => {
+        if (i === fromRow && j === fromCol) return null;
+        if (i === row && j === col)
+          return new Piece(selectedPiece.color, selectedPiece.getType(), { row, col });
+        return sq;
+      })
+    );
+
+    if (["king", "rook"].includes(selectedPiece.getType()) && !selectedPiece.getHasMoved()) {
+      selectedPiece.hasMoved();
+    }
+
+    if (isCheck(newBoard, turn)) {
+      alert("You are in check.");
+      setSelected(null);
+      return;
+    }
+
+    setSelected(null);
+    setBoard(newBoard);
+    setTurn(turn === "white" ? "black" : "white");
   } else if (piece && piece.color === turn) {
     setSelected({ row, col, piece });
     console.log("Selected piece at", row, col);
   }
 }
+
+
+function isValidMove(board, from, to, piece) {
+  const targetPiece = board[to.row][to.col];
+  const canMove = piece.canMove(from, to);
+  const isSlidingPiece = ["rook", "bishop", "queen"].includes(piece.getType());
+  const isEmptyDestination = !targetPiece;
+  const isEnemy = targetPiece && targetPiece.color !== piece.color;
+
+  if (targetPiece && targetPiece.color === piece.color) return false;
+
+  if (isEnemy) {
+    if (
+      (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
+      (piece.getType() === "pawn" && piece.isValidPawnCapture(from, to)) ||
+      (piece.getType() === "king" && canMove)
+    ) return true;
+  } else if (isEmptyDestination) {
+    if (
+      (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
+      (piece.getType() === "pawn" && piece.isValidPawnMove(from, to)) ||
+      (["king", "knight"].includes(piece.getType()) && canMove)
+    ) return true;
+  }
+
+  return false;
+}
+
 
 
   function isPathClear(board, from, to) {
