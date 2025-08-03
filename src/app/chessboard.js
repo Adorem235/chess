@@ -127,7 +127,11 @@ export default function Chessboard() {
     }
 
     if (validMove) {
+
+      // todo: add logic to detect whether the player is trying to castle
       canCastle(board, turn, from, to);
+
+
       const testBoard = simulateMove(board, from, to);
       if (isCheck(testBoard, selectedPiece.color)) {
         alert("You can't move into check.");
@@ -381,7 +385,37 @@ function canCastle(board, color, from, to){
       return validCastle;
   }
 
+  
 
+
+
+}
+function checkForCheckmate(board, color){
+  if (isCheck(board, color)){
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = board[row][col];
+        if (!piece) continue;
+
+      }
+    }   
+  }
+}
+
+function getAllPossibleMoves(piece, startLocation){
+  let moveList = [];
+  console.log(piece, startLocation);
+  for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        let destination = {row, col}
+        if(piece.canMove(startLocation, destination)){
+          moveList.push({row,col})
+
+        }
+
+      }
+    }
+    return moveList;
 
 }
 
