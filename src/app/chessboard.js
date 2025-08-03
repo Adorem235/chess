@@ -74,6 +74,7 @@ function handleSquareClick(row, col, piece) {
     const from = { row: fromRow, col: fromCol };
     const to = { row, col };
 
+
     if (fromRow === row && fromCol === col) {
       setSelected(null);
       return;
@@ -111,7 +112,7 @@ function handleSquareClick(row, col, piece) {
     );
 
     if (["king", "rook"].includes(selectedPiece.getType()) && !selectedPiece.getHasMoved()) {
-      selectedPiece.hasMoved();
+      selectedPiece.getHasMoved();
     }
 
     if (isCheck(newBoard, turn)) {
@@ -121,6 +122,7 @@ function handleSquareClick(row, col, piece) {
     }
 
     setSelected(null);
+    
     setBoard(newBoard);
     setTurn(turn === "white" ? "black" : "white");
   } else if (piece && piece.color === turn) {
@@ -375,25 +377,35 @@ function canCastle(board, color, from, to){
 
 
 }
-function checkForCheckmate(board, color){
-  if (isCheck(board, color)){
+function checkForCheckmate(board, color) {
+  if (isCheck(board, color)) {
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const piece = board[row][col];
-        if (!piece) continue;
+        if (!piece || piece.color !== color) continue;
 
+        const moves = getAllPossibleMoves(board, piece, { row, col });
+        for (const move of moves) {
+          const testBoard = simulateMove(board, { row, col }, move);
+          if (!isCheck(testBoard, color)) {
+            return false; // Found a move that gets out of check
+          }
+        }
       }
-    }   
+    }
+    return true; // No valid moves, and still in check — checkmate
   }
+  return false; // Not in check, so can't be checkmate
 }
 
-function getAllPossibleMoves(piece, startLocation){
+
+function getAllPossibleMoves(board, piece, startLocation){
   let moveList = [];
   console.log(piece, startLocation);
   for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         let destination = {row, col}
-        if(piece.canMove(startLocation, destination)){
+        if(piece.canMove(startLocation, destination) && isValidMove(board, startLocation, destination, piece)){
           moveList.push({row,col})
 
         }
