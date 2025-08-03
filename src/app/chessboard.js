@@ -6,6 +6,7 @@ import Piece from "./piece";
 export default function Chessboard() {
   // Initialize an 8x8 board with pawns for demonstration
   const [prevMove, setPrevMove] = useState();
+  const[checkmate, setCheckmate] = useState(false);
   const [turn, setTurn] = useState("white");
   const [inCheck, setCheck]= useState();
   const [board, setBoard] = useState(
@@ -70,6 +71,10 @@ export default function Chessboard() {
 
 
 function handleSquareClick(row, col, piece) {
+  if(checkmate == true){
+    console.log(piece.color + " is in checkmate")
+    return;
+  }
   if (selected) {
     const { row: fromRow, col: fromCol, piece: selectedPiece } = selected;
     const from = { row: fromRow, col: fromCol };
@@ -272,6 +277,10 @@ function isValidMove(board, from, to, piece) {
         if (canThreaten) {
           console.log(`King is in check from ${type} at ${row},${col}`);
           setCheck(color);
+          if(checkForCheckmate(board, color)){
+            setCheckmate(true);
+          }
+          
           return true;
         }
       }
