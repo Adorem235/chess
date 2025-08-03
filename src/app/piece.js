@@ -27,7 +27,7 @@ class Piece {
   getHasMoved(){
     return this.hasMoved;
   }
-  hasMoved(){
+  setHasMoved(){
     if(!this.hasMoved){
       this.hasMoved = true;
     }

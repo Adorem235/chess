@@ -74,7 +74,6 @@ function handleSquareClick(row, col, piece) {
     const from = { row: fromRow, col: fromCol };
     const to = { row, col };
 
-
     if (fromRow === row && fromCol === col) {
       setSelected(null);
       return;
@@ -110,9 +109,31 @@ function handleSquareClick(row, col, piece) {
         return sq;
       })
     );
+    
+    if (selectedPiece.getType() === "king" && Math.abs(to.col - from.col) === 2) {
+      const row = from.row;
 
-    if (["king", "rook"].includes(selectedPiece.getType()) && !selectedPiece.getHasMoved()) {
-      selectedPiece.getHasMoved();
+      // King-side castle
+      if (to.col === 6) {
+        const rook = board[row][7];
+        newBoard[row][5] = new Piece(rook.color, rook.getType(), { row, col: 5 });
+        newBoard[row][7] = null;
+      }
+
+      // Queen-side castle
+      else if (to.col === 2) {
+        const rook = board[row][0];
+        newBoard[row][3] = new Piece(rook.color, rook.getType(), { row, col: 3 });
+        newBoard[row][0] = null;
+      }
+    }
+
+
+    const movedPiece = newBoard[row][col];
+    if (
+      ["king", "rook"].includes(movedPiece.getType())
+    ) {
+      movedPiece.setHasMoved();
     }
 
     if (isCheck(newBoard, turn)) {
@@ -122,7 +143,6 @@ function handleSquareClick(row, col, piece) {
     }
 
     setSelected(null);
-    
     setBoard(newBoard);
     setTurn(turn === "white" ? "black" : "white");
   } else if (piece && piece.color === turn) {
@@ -130,6 +150,7 @@ function handleSquareClick(row, col, piece) {
     console.log("Selected piece at", row, col);
   }
 }
+
 
 
 function isValidMove(board, from, to, piece) {
@@ -148,6 +169,11 @@ function isValidMove(board, from, to, piece) {
       (piece.getType() === "king" && canMove)
     ) return true;
   } else if (isEmptyDestination) {
+    if(piece.getType() === "king" && Math.abs(to.col - from.col) == 2){
+      if (canCastle(board, piece.color, from, to)){
+        return true;
+      }
+    }
     if (
       (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
       (piece.getType() === "pawn" && piece.isValidPawnMove(from, to)) ||
@@ -251,132 +277,49 @@ function isValidMove(board, from, to, piece) {
   }
   return null; // King not found
 }
-function canCastle(board, color, from, to){
-  
+function canCastle(board, color, from, to) {
+  const row = color === "white" ? 7 : 0;
+  const kingStart = board[row][4];
 
-  //check white castle (white king at 7,4)
-  if(color === "white"){
-    const queensCorner = board[7][0];
-    const kingsCorner = board[7][7];
-    const kingStart = board[7][4];
-    let validCastle = false;
-    const queenSideCastle = {from: {row:7, col:0}, to: {row: 7, col: 4} }
-    const kingSideCastle = {from: {row:7, col:7}, to: {row: 7, col: 4} }
+  const kingsideRook = board[row][7];
+  const queensideRook = board[row][0];
 
-    if(to.col < from.col){
-      // Queenside Castle
-      for(let i=2; i<4; i++){
-        const testBoard = simulateMove(board, kingStart, {row: 7, col: i});
-        if (isCheck(testBoard, selectedPiece.color)) {
-          alert("You can't castle through check.");
-          return;
-      }
+  const direction = to.col < from.col ? "queenside" : "kingside";
 
-      }
-      if(
-        (queensCorner.getType() === "rook" && !queensCorner.getHasMoved()) &&
-        (kingStart.getType() === "king" && !kingStart.getHasMoved())
-      ){
-        console.log(isPathClear(board,queenSideCastle.from, queenSideCastle.to) + " clear path check")
-        if(isPathClear(board,queenSideCastle.from, queenSideCastle.to)){
-          console.log("White can castle queenside")
-          validCastle = true;
-        }
-      } else{
-        console.log("white cannot castle queenside")
-        validCastle = false;
-      }
-    }
-    else{
-        //kingside castle
-        for(let i=5; i<7; i++){
-        const testBoard = simulateMove(board, kingStart, {row: 7, col: i});
-        if (isCheck(testBoard, color)) {
-          alert("You can't castle through check.");
-          return;
-      }
+  const rook = direction === "kingside" ? kingsideRook : queensideRook;
+  const rookCol = direction === "kingside" ? 7 : 0;
+  const pathCols = direction === "kingside" ? [5, 6] : [3, 2];
+  const castleCols = direction === "kingside" ? [4, 5, 6] : [4, 3, 2];
 
-      }
-      if(
-        (kingsCorner.getType() === "rook" && !kingsCorner.getHasMoved()) &&
-        (kingStart.getType() === "king" && !kingStart.getHasMoved())
-      ){
-        console.log(isPathClear(board,kingSideCastle.from, kingSideCastle.to) + " clear path check")
-        if(isPathClear(board,kingSideCastle.from, kingSideCastle.to)){
-          console.log("White can castle kingside")
-          validCastle = true;
-        }
-      } else{
-        console.log("white cannot castle kingside")
-        validCastle = false;
-      }
-    }
-    return validCastle;
-  }
-  //check black castle (black king at 0,4)
-  else {
-    const queensCorner = board[0][0]
-    const kingsCorner = board[0][7]
-    const kingStart = board[0][4];
-    const queenSideCastle = {from: {row:0, col:0}, to: {row: 0, col: 4} }
-    const kingSideCastle = {from: {row:0, col:7}, to: {row: 0, col: 4} }
-    let validCastle = false;
-    if(to.col < from.col){
-        // QueenSide Castle
-        for(let i=2; i<4 ; i++){
-        const testBoard = simulateMove(board, kingStart, {row: 0, col: i});
-        if (isCheck(testBoard, color)) {
-          alert("You can't castle through check.");
-          return;
-      }
+  // Check the king and rook haven't moved
+  if (!kingStart || !rook) return false;
+  if (kingStart.getType() !== "king" || rook.getType() !== "rook") return false;
+  if (kingStart.getHasMoved() || rook.getHasMoved()) return false;
 
-        }
-      if(
-        (queensCorner.getType() === "rook" && !queensCorner.getHasMoved()) &&
-        (kingStart.getType() === "king" && !kingStart.getHasMoved())
-      ){
-        console.log(isPathClear(board,queenSideCastle.from, queenSideCastle.to) + " clear path check")
-        if(isPathClear(board,queenSideCastle.from, queenSideCastle.to)){
-          console.log("black can castle queenside")
-          validCastle = true;
-        }
-      }else{
-        console.log("black cannot castle")
-        validCastle =  false;
-      }
-    } else{
-      //Kingside Castle
-      for(let i=5; i<7; i++){
-        const testBoard = simulateMove(board, kingStart, {row: 0, col: i});
-        if (isCheck(testBoard, color)) {
-          alert("You can't castle through check.");
-          return;
-      }
-
-      }
-
-      if(
-        (kingsCorner.getType() === "rook" && !kingsCorner.getHasMoved()) &&
-        (kingStart.getType() === "king" && !kingStart.getHasMoved())
-      ){
-        console.log(isPathClear(board,kingSideCastle.from, kingSideCastle.to) + " clear path check")
-        if(isPathClear(board,kingSideCastle.from, kingSideCastle.to)){
-          console.log("Black can castle kingside")
-          validCastle = true;
-        }
-      } else{
-        console.log("Black cannot castle kingside")
-        validCastle =  false;
-      }
-      }
-      return validCastle;
+  // Check the path between king and rook is clear
+  for (let col of pathCols) {
+    if (board[row][col]) return false; // space is occupied
   }
 
-  
+  // Simulate king's path to make sure it's not through check
+  for (let col of castleCols) {
+    const testBoard = simulateMove(board, { row, col: 4 }, { row, col });
+    if (isCheck(testBoard, color)) {
+      alert("You can't castle through check.");
+      return false;
+    }
+  }
 
+  // Check if entire path is clear (including between king and rook)
+  if (
+    isPathClear(board, { row, col: rookCol }, { row, col: 4 }) // rook to king
+  ) {
+    return true;
+  }
 
-
+  return false;
 }
+
 function checkForCheckmate(board, color) {
   if (isCheck(board, color)) {
     for (let row = 0; row < 8; row++) {
