@@ -8,6 +8,7 @@ export default function Chessboard() {
   const [prevMove, setPrevMove] = useState();
   const[checkmate, setCheckmate] = useState(false);
   const[stalemate, setStalemate] = useState(false);
+  const [promotionInfo, setPromotionInfo] = useState(null);
   const [turn, setTurn] = useState("white");
   const [inCheck, setCheck]= useState();
   const [board, setBoard] = useState(
@@ -156,6 +157,16 @@ function handleSquareClick(row, col, piece) {
       alert("You are in check.");
       setSelected(null);
       return;
+    }
+    //handle promotion
+    if (
+      movedPiece.getType() === "pawn" &&
+      (row === 0 || row === 7)
+    ) {
+      // Temporarily keep the pawn there, then open modal
+      setPromotionInfo({ row, col, color: movedPiece.color });
+      setBoard(newBoard);          // Show the pawn in its final square
+      return;                      // Exit early; wait for user choice
     }
 
     // Update state
@@ -459,6 +470,38 @@ function enPassant(board, piece, to, from, prevMove) {
   return false;
 }
 
+function handlePromotionChoice(newType) {
+  if (!promotionInfo) return;
+
+  // Create the promoted piece
+  const { row: pRow, col: pCol, color } = promotionInfo;
+  setBoard(prev =>
+    prev.map((r, i) =>
+      r.map((sq, j) =>
+        i === pRow && j === pCol
+          ? new Piece(color, newType, { row: pRow, col: pCol })
+          : sq
+      )
+    )
+  );
+
+  // Clear modal & finish turn
+  setPromotionInfo(null);
+
+  // After promotion the move is complete; check for mate / stalemate
+  const nextColor = color === "white" ? "black" : "white";
+  const b = board;             // latest board is now in state
+  if (checkForCheckmate(b, nextColor)) {
+    setCheckmate(true);
+    alert(`${nextColor} is in checkmate!`);
+  } else if (checkForStalemate(b, nextColor)) {
+    alert(`${nextColor} is in stalemate!`);
+  } else {
+    setTurn(nextColor);
+  }
+}
+
+
 
   return (
   <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -481,6 +524,25 @@ function enPassant(board, piece, to, from, prevMove) {
         ))
       )}
     </div>
+
+    {promotionInfo && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
+    <div className="bg-white rounded-lg p-4 shadow-lg space-y-2 text-center">
+      <p className="font-semibold mb-2">
+        Promote&nbsp;to&nbsp;?
+      </p>
+      {["queen", "rook", "bishop", "knight"].map(t => (
+        <button
+          key={t}
+          className="px-3 py-1 m-1 border rounded hover:bg-gray-200"
+          onClick={() => handlePromotionChoice(t)}
+        >
+          {t.charAt(0).toUpperCase() + t.slice(1)}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
   </div>
 );
 }
