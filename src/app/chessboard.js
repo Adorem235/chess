@@ -7,6 +7,7 @@ export default function Chessboard() {
   // Initialize an 8x8 board with pawns for demonstration
   const [prevMove, setPrevMove] = useState();
   const[checkmate, setCheckmate] = useState(false);
+  const[stalemate, setStalemate] = useState(false);
   const [turn, setTurn] = useState("white");
   const [inCheck, setCheck]= useState();
   const [board, setBoard] = useState(
@@ -71,10 +72,11 @@ export default function Chessboard() {
 
 
 function handleSquareClick(row, col, piece) {
-  if(checkmate == true){
-    console.log(piece.color + " is in checkmate")
+  if (checkmate === true) {
+    console.log(`${piece?.color || "A player"} is in checkmate`);
     return;
   }
+
   if (selected) {
     const { row: fromRow, col: fromCol, piece: selectedPiece } = selected;
     const from = { row: fromRow, col: fromCol };
@@ -116,6 +118,7 @@ function handleSquareClick(row, col, piece) {
       })
     );
 
+    // Handle castling
     if (selectedPiece.getType() === "king" && Math.abs(to.col - from.col) === 2) {
       const row = from.row;
 
@@ -134,20 +137,19 @@ function handleSquareClick(row, col, piece) {
       }
     }
 
-
     const movedPiece = newBoard[row][col];
-    if (
-      ["king", "rook"].includes(movedPiece.getType())
-    ) {
+
+    if (["king", "rook"].includes(movedPiece.getType())) {
       movedPiece.setHasMoved();
     }
 
+    // Handle en passant
     if (
       selectedPiece.getType() === "pawn" &&
       enPassant(board, selectedPiece, to, from, prevMove)
     ) {
       const direction = selectedPiece.color === "white" ? 1 : -1;
-      newBoard[to.row + direction][to.col] = null; // remove captured pawn
+      newBoard[to.row + direction][to.col] = null;
     }
 
     if (isCheck(newBoard, turn)) {
@@ -155,23 +157,36 @@ function handleSquareClick(row, col, piece) {
       setSelected(null);
       return;
     }
+
+    // Update state
     setPrevMove({
       from,
       to,
       piece: selectedPiece.getType(),
       color: selectedPiece.color,
     });
-    console.log(prevMove)
 
     setSelected(null);
     setBoard(newBoard);
-    
-    setTurn(turn === "white" ? "black" : "white");
+
+    const opponentColor = turn === "white" ? "black" : "white";
+    setTimeout(() => {
+      if (checkForCheckmate(newBoard, opponentColor)) {
+        setCheckmate(true);
+        alert(`${opponentColor} is in checkmate!`);
+      } else if (checkForStalemate(newBoard, opponentColor)) {
+        alert(`${opponentColor} is in stalemate!`);
+       setStalemate(true);
+      } else {
+        setTurn(opponentColor);
+      }
+    }, 100);
   } else if (piece && piece.color === turn) {
     setSelected({ row, col, piece });
     console.log("Selected piece at", row, col);
   }
 }
+
 
 
 
@@ -277,9 +292,6 @@ function isValidMove(board, from, to, piece) {
         if (canThreaten) {
           console.log(`King is in check from ${type} at ${row},${col}`);
           setCheck(color);
-          if(checkForCheckmate(board, color)){
-            setCheckmate(true);
-          }
           
           return true;
         }
@@ -389,6 +401,33 @@ function getAllPossibleMoves(board, piece, startLocation){
     return moveList;
 
 }
+
+function checkForStalemate(board, color) {
+  if (isCheck(board, color)) {
+    return false; // If the player is in check, it's not stalemate
+  }
+
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+      const startLocation = { row, col };
+
+      if (piece && piece.color === color) {
+        const moves = getAllPossibleMoves(board, piece, startLocation);
+
+        for (const move of moves) {
+          const simulated = simulateMove(board, startLocation, move);
+          if (!isCheck(simulated, color)) {
+            return false; // Found a legal move — not stalemate
+          }
+        }
+      }
+    }
+  }
+
+  return true; // No legal moves and not in check = stalemate
+}
+
 
 function enPassant(board, piece, to, from, prevMove) {
   if (
