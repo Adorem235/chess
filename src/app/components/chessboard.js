@@ -3,10 +3,11 @@ import React, { useState } from "react";
 import Square from "../models/square";
 import Piece from "../models/piece";
 import * as GameRules from '../logic/gameRules';
+import PromotionModal from "./promotionModal";
 
 export default function Chessboard() {
   // Initialize an 8x8 board with pawns for demonstration
-  const [prevMove, setPrevMove] = useState();
+  const [prevMove, setPrevMove] = useState(null);
   const[checkmate, setCheckmate] = useState(false);
   const[stalemate, setStalemate] = useState(false);
   const [promotionInfo, setPromotionInfo] = useState(null);
@@ -100,7 +101,7 @@ function handleSquareClick(row, col, piece) {
       return;
     }
 
-    if (!GameRules.isValidMove(board, from, to, selectedPiece)) {
+    if (!GameRules.isValidMove(board, from, to, selectedPiece, prevMove)) {
       alert("Invalid move.");
       return;
     }
@@ -227,10 +228,10 @@ function handlePromotionChoice(newType) {
   // After promotion the move is complete; check for mate / stalemate
   const nextColor = color === "white" ? "black" : "white";
   const b = board;             // latest board is now in state
-  if (checkForCheckmate(b, nextColor)) {
+  if (GameRules.checkForCheckmate(b, nextColor)) {
     setCheckmate(true);
     alert(`${nextColor} is in checkmate!`);
-  } else if (checkForStalemate(b, nextColor)) {
+  } else if (GameRules.checkForStalemate(b, nextColor)) {
     alert(`${nextColor} is in stalemate!`);
   } else {
     setTurn(nextColor);
@@ -262,23 +263,11 @@ function handlePromotionChoice(newType) {
     </div>
 
     {promotionInfo && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
-    <div className="bg-white rounded-lg p-4 shadow-lg space-y-2 text-center">
-      <p className="font-semibold mb-2">
-        Promote&nbsp;to&nbsp;?
-      </p>
-      {["queen", "rook", "bishop", "knight"].map(t => (
-        <button
-          key={t}
-          className="px-3 py-1 m-1 border rounded hover:bg-gray-200"
-          onClick={() => handlePromotionChoice(t)}
-        >
-          {t.charAt(0).toUpperCase() + t.slice(1)}
-        </button>
-      ))}
-    </div>
-  </div>
-)}
+      <PromotionModal
+        color={promotionInfo.color}
+        onSelect={(newType) => handlePromotionChoice(newType)}
+      />
+    )}
   </div>
 );
 }

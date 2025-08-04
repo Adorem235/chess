@@ -1,4 +1,4 @@
-export function isValidMove(board, from, to, piece) {
+export function isValidMove(board, from, to, piece, prevMove) {
   const targetPiece = board[to.row][to.col];
   const canMove = piece.canMove(from, to);
   const isSlidingPiece = ["rook", "bishop", "queen"].includes(piece.getType());
