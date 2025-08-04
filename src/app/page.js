@@ -1,4 +1,4 @@
-import Chessboard from "./chessboard";
+import Chessboard from "./components/chessboard";
 export default function Home() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

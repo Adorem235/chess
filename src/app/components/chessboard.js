@@ -1,0 +1,284 @@
+"use client";
+import React, { useState } from "react";
+import Square from "../models/square";
+import Piece from "../models/piece";
+import * as GameRules from '../logic/gameRules';
+
+export default function Chessboard() {
+  // Initialize an 8x8 board with pawns for demonstration
+  const [prevMove, setPrevMove] = useState();
+  const[checkmate, setCheckmate] = useState(false);
+  const[stalemate, setStalemate] = useState(false);
+  const [promotionInfo, setPromotionInfo] = useState(null);
+  const [turn, setTurn] = useState("white");
+  const [inCheck, setCheck]= useState();
+  const [board, setBoard] = useState(
+    Array(8)
+      .fill(null)
+      .map((_, i) =>
+        Array(8)
+          .fill(null)
+          .map((_, j) => {
+            // Initialise black pieces
+            if (i === 0) {
+              if (j === 0 || j === 7) {
+                return new Piece("black", "rook", { row: i, col: j });
+              } else if (j === 1 || j === 6) {
+                return new Piece("black", "knight", { row: i, col: j });
+              } else if (j === 2 || j === 5) {
+                return new Piece("black", "bishop", { row: i, col: j });
+              } else if (j === 3) {
+                return new Piece("black", "queen", { row: i, col: j });
+              } else if (j === 4) {
+                return new Piece("black", "king", { row: i, col: j });
+              }
+            } else if (i === 1) {
+              return new Piece("black", "pawn", { row: i, col: j });
+            }
+            //initialise white pieces
+            else if (i === 6) {
+              return new Piece("white", "pawn", { row: i, col: j });
+            } else if (i === 7) {
+              if (j === 0 || j === 7) {
+                return new Piece("white", "rook", { row: i, col: j });
+              } else if (j === 1 || j === 6) {
+                return new Piece("white", "knight", { row: i, col: j });
+              } else if (j === 2 || j === 5) {
+                return new Piece("white", "bishop", { row: i, col: j });
+              } else if (j === 3) {
+                return new Piece("white", "queen", { row: i, col: j });
+              } else if (j === 4) {
+                return new Piece("white", "king", { row: i, col: j });
+              }
+            }
+            return null; // Empty square
+          })
+      )
+  );
+
+  const [selected, setSelected] = useState(null);
+
+  // Set a piece at a specific square
+  function setPiece(row, col, piece) {
+    setBoard(prev =>
+      prev.map((r, i) =>
+        i === row
+          ? r.map((sq, j) => (j === col ? piece : sq))
+          : r
+      )
+    );
+  }
+
+  // Remove a piece at a specific square
+
+
+
+function handleSquareClick(row, col, piece) {
+  if (checkmate === true) {
+    console.log(`${piece?.color || "A player"} is in checkmate`);
+    return;
+  }
+
+  if (selected) {
+    const { row: fromRow, col: fromCol, piece: selectedPiece } = selected;
+    const from = { row: fromRow, col: fromCol };
+    const to = { row, col };
+
+    if (fromRow === row && fromCol === col) {
+      setSelected(null);
+      return;
+    }
+
+    if (piece && piece.color === turn && piece !== selectedPiece) {
+      setSelected({ row, col, piece });
+      return;
+    }
+
+    if (selectedPiece.color !== turn) {
+      alert("You can only move your own pieces.");
+      setSelected(null);
+      return;
+    }
+
+    if (!GameRules.isValidMove(board, from, to, selectedPiece)) {
+      alert("Invalid move.");
+      return;
+    }
+
+    const testBoard = GameRules.simulateMove(board, from, to);
+    if (GameRules.isCheck(testBoard, selectedPiece.color)) {
+      alert("You can't move into check.");
+      return;
+    }
+
+    const newBoard = board.map((r, i) =>
+      r.map((sq, j) => {
+        if (i === fromRow && j === fromCol) return null;
+        if (i === row && j === col)
+          return new Piece(selectedPiece.color, selectedPiece.getType(), { row, col });
+        return sq;
+      })
+    );
+
+    // Handle castling
+    if (selectedPiece.getType() === "king" && Math.abs(to.col - from.col) === 2) {
+      const row = from.row;
+
+      // King-side castle
+      if (to.col === 6) {
+        const rook = board[row][7];
+        newBoard[row][5] = new Piece(rook.color, rook.getType(), { row, col: 5 });
+        newBoard[row][7] = null;
+      }
+
+      // Queen-side castle
+      else if (to.col === 2) {
+        const rook = board[row][0];
+        newBoard[row][3] = new Piece(rook.color, rook.getType(), { row, col: 3 });
+        newBoard[row][0] = null;
+      }
+    }
+
+    const movedPiece = newBoard[row][col];
+
+    if (["king", "rook"].includes(movedPiece.getType())) {
+      movedPiece.setHasMoved();
+    }
+
+    // Handle en passant
+    if (
+      selectedPiece.getType() === "pawn" &&
+      GameRules.enPassant(board, selectedPiece, to, from, prevMove)
+    ) {
+      const direction = selectedPiece.color === "white" ? 1 : -1;
+      newBoard[to.row + direction][to.col] = null;
+    }
+
+    if (GameRules.isCheck(newBoard, turn)) {
+      alert("You are in check.");
+      setSelected(null);
+      return;
+    }
+    //handle promotion
+    if (
+      movedPiece.getType() === "pawn" &&
+      (row === 0 || row === 7)
+    ) {
+      // Temporarily keep the pawn there, then open modal
+      setPromotionInfo({ row, col, color: movedPiece.color });
+      setBoard(newBoard);          // Show the pawn in its final square
+      return;                      // Exit early; wait for user choice
+    }
+
+    // Update state
+    setPrevMove({
+      from,
+      to,
+      piece: selectedPiece.getType(),
+      color: selectedPiece.color,
+    });
+
+    setSelected(null);
+    setBoard(newBoard);
+    const opponentColor = turn === "white" ? "black" : "white";
+
+    if (GameRules.isCheck(newBoard, opponentColor)) {
+      setCheck(`${opponentColor}`);
+    } else {
+      setCheck(null);
+    }
+
+    
+    setTimeout(() => {
+      if (GameRules.checkForCheckmate(newBoard, opponentColor)) {
+        setCheckmate(true);
+        alert(`${opponentColor} is in checkmate!`);
+      } else if (GameRules.checkForStalemate(newBoard, opponentColor)) {
+        alert(`${opponentColor} is in stalemate!`);
+       setStalemate(true);
+      } else {
+        setTurn(opponentColor);
+      }
+    }, 100);
+  } else if (piece && piece.color === turn) {
+    setSelected({ row, col, piece });
+    console.log("Selected piece at", row, col);
+  }
+}
+
+function handlePromotionChoice(newType) {
+  if (!promotionInfo) return;
+
+  // Create the promoted piece
+  const { row: pRow, col: pCol, color } = promotionInfo;
+  setBoard(prev =>
+    prev.map((r, i) =>
+      r.map((sq, j) =>
+        i === pRow && j === pCol
+          ? new Piece(color, newType, { row: pRow, col: pCol })
+          : sq
+      )
+    )
+  );
+
+  // Clear modal & finish turn
+  setPromotionInfo(null);
+
+  // After promotion the move is complete; check for mate / stalemate
+  const nextColor = color === "white" ? "black" : "white";
+  const b = board;             // latest board is now in state
+  if (checkForCheckmate(b, nextColor)) {
+    setCheckmate(true);
+    alert(`${nextColor} is in checkmate!`);
+  } else if (checkForStalemate(b, nextColor)) {
+    alert(`${nextColor} is in stalemate!`);
+  } else {
+    setTurn(nextColor);
+  }
+}
+
+
+
+  return (
+  <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div className="mb-4 text-center">
+      <h1 className="text-2xl mb-4">{turn}&apos;s Turn</h1>
+      <h1 className="text-2xl mb-4">{inCheck} is in check</h1>
+    </div>
+    <div className="grid grid-cols-8 grid-rows-8 gap-0">
+      {board.map((rowArr, i) =>
+        rowArr.map((piece, j) => (
+          <Square
+            key={`${i}-${j}`}
+            row={i}
+            col={j}
+            piece={piece}
+            setPiece={p => setPiece(i, j, p)}
+            removePiece={() => removePiece(i, j)}
+            onSquareClick={handleSquareClick}
+          />
+        ))
+      )}
+    </div>
+
+    {promotionInfo && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
+    <div className="bg-white rounded-lg p-4 shadow-lg space-y-2 text-center">
+      <p className="font-semibold mb-2">
+        Promote&nbsp;to&nbsp;?
+      </p>
+      {["queen", "rook", "bishop", "knight"].map(t => (
+        <button
+          key={t}
+          className="px-3 py-1 m-1 border rounded hover:bg-gray-200"
+          onClick={() => handlePromotionChoice(t)}
+        >
+          {t.charAt(0).toUpperCase() + t.slice(1)}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
+  </div>
+);
+}
