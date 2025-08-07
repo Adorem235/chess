@@ -175,6 +175,9 @@ export function findKing(board, color) {
 }
 
 export function canCastle(board, color, from, to) {
+  if(isCheck(board, color)){
+    return false;
+  }
   const row = color === "white" ? 7 : 0;
   const kingStart = board[row][4];
 
