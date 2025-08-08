@@ -211,7 +211,7 @@ useEffect(() => {
 
 
 return (
-  <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+  <div className="flex flex-col items-center justify-start bg-gray-100">
 
     {/* Chessboard */}
     <div className="grid grid-cols-8 grid-rows-8 gap-0">
