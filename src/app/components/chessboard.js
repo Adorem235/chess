@@ -1,17 +1,18 @@
 "use client";
 import React, { useState } from "react";
+import { useEffect } from "react";
+
 import Square from "../models/square";
 import Piece from "../models/piece";
 import * as GameRules from '../logic/gameRules';
 import PromotionModal from "./promotionModal";
 
-export default function Chessboard() {
+export default function Chessboard({turn, setTurn, resetSignal}) {
   // Initialize an 8x8 board with pawns for demonstration
   const [prevMove, setPrevMove] = useState(null);
   const[checkmate, setCheckmate] = useState(false);
   const[stalemate, setStalemate] = useState(false);
   const [promotionInfo, setPromotionInfo] = useState(null);
-  const [turn, setTurn] = useState("white");
   const [inCheck, setCheck]= useState();
   const [board, setBoard] = useState(
     GameRules.newBoard()
@@ -197,34 +198,20 @@ function handlePromotionChoice(newType) {
     setTurn(nextColor);
   }
 }
-function resetGame(){
+
+useEffect(() => {
   setBoard(GameRules.newBoard());
   setTurn("white");
   setCheck(false);
   setCheckmate(false);
   setPrevMove(null);
-  setPromotionInfo(null);
-}
+  setPromotionInfo(null);;
+  }, [resetSignal]);
 
 
 
 return (
   <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-    {/* Game Info */}
-    <div className="mb-4 text-center">
-      <h1 className="text-2xl mb-2">{turn}&apos;s Turn</h1>
-      {inCheck && (
-        <h1 className="text-2xl text-red-500 font-bold">{inCheck} is in Check!</h1>
-      )}
-
-      {/* Reset Button */}
-      <button
-        onClick={resetGame}
-        className="mt-2 bg-red-500 px-4 py-2 rounded text-white hover:bg-red-600 transition"
-      >
-        Reset Game
-      </button>
-    </div>
 
     {/* Chessboard */}
     <div className="grid grid-cols-8 grid-rows-8 gap-0">
