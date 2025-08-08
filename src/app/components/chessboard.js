@@ -197,15 +197,36 @@ function handlePromotionChoice(newType) {
     setTurn(nextColor);
   }
 }
+function resetGame(){
+  setBoard(GameRules.newBoard());
+  setTurn("white");
+  setCheck(false);
+  setCheckmate(false);
+  setPrevMove(null);
+  setPromotionInfo(null);
+}
 
 
 
-  return (
+return (
   <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    {/* Game Info */}
     <div className="mb-4 text-center">
-      <h1 className="text-2xl mb-4">{turn}&apos;s Turn</h1>
-      <h1 className="text-2xl mb-4">{inCheck} is in check</h1>
+      <h1 className="text-2xl mb-2">{turn}&apos;s Turn</h1>
+      {inCheck && (
+        <h1 className="text-2xl text-red-500 font-bold">{inCheck} is in Check!</h1>
+      )}
+
+      {/* Reset Button */}
+      <button
+        onClick={resetGame}
+        className="mt-2 bg-red-500 px-4 py-2 rounded text-white hover:bg-red-600 transition"
+      >
+        Reset Game
+      </button>
     </div>
+
+    {/* Chessboard */}
     <div className="grid grid-cols-8 grid-rows-8 gap-0">
       {board.map((rowArr, i) =>
         rowArr.map((piece, j) => (
@@ -214,7 +235,7 @@ function handlePromotionChoice(newType) {
             row={i}
             col={j}
             piece={piece}
-            setPiece={p => setPiece(i, j, p)}
+            setPiece={(p) => setPiece(i, j, p)}
             removePiece={() => removePiece(i, j)}
             onSquareClick={handleSquareClick}
           />
@@ -222,6 +243,7 @@ function handlePromotionChoice(newType) {
       )}
     </div>
 
+    {/* Promotion Modal */}
     {promotionInfo && (
       <PromotionModal
         color={promotionInfo.color}
@@ -230,4 +252,5 @@ function handlePromotionChoice(newType) {
     )}
   </div>
 );
+
 }
