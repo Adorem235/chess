@@ -316,3 +316,84 @@ export function enPassant(board, piece, to, from, prevMove) {
   return false;
 }
 
+export function convertToChessNotation(move){
+  var convertedMove;
+  var pieceType;
+  var square = {row: "", col:""};
+  var mofifier;
+  switch(move.piece){
+    case 'pawn':
+        pieceType = '';
+        break;
+      case 'rook':
+       pieceType = 'R';
+       break;
+      case 'knight':
+        pieceType = 'N';
+        break;
+      case 'bishop':
+       pieceType = 'B';
+       break;
+      case 'queen':
+        pieceType = 'Q';
+        break;
+      case 'king':
+        pieceType = 'K'
+  }
+  switch(move.to.row){
+    case 0 :
+      square.row = "8"
+      break;
+    case 1 :
+      square.row = "7"
+      break;
+    case 2 :
+      square.row = "6"
+      break;
+    case 3 :
+      square.row = "5"
+      break;
+    case 4 :
+      square.row = "4"
+      break;
+    case 5 :
+      square.row = "3"
+      break;
+    case 6 :
+      square.row = "2"
+      break;
+    case 7 :
+      square.row = "1"
+  }
+  switch(move.to.col){
+    case 0 :
+      square.col = "a"
+      break;
+    case 1 :
+      square.col = "b"
+      break;
+    case 2 :
+      square.col = "c"
+      break;
+    case 3 :
+      square.col = "d"
+      break;
+    case 4 :
+      square.col = "e"
+      break;
+    case 5 :
+      square.col = "f"
+      break;
+    case 6 :
+      square.col = "g"
+      break;
+    case 7 :
+      square.col = "h"
+  }
+  console.log("This is a :" + move.piece);
+  convertedMove = pieceType + square.col + square.row
+  return convertedMove
+  //1st rank is where row = 7
+  //1st file os where col = 0
+}
+

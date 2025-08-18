@@ -7,6 +7,7 @@ import GameInfo from "./components/gameInfo";
 export default function Home() {
   const [turn, setTurn] = useState("white");
   const [resetSignal, setResetSignal] = useState(0);
+  const [moveList, setMoveList] = useState([])
 
   const handleReset = () => {
     setResetSignal(prev => prev + 1);
@@ -20,8 +21,8 @@ export default function Home() {
 
       {/* Main content area: GameInfo sidebar + Chessboard */}
       <main className="flex flex-grow items-start justify-center gap-4 p-4">
-        <GameInfo turn={turn} onReset= {handleReset} />
-        <Chessboard turn={turn} setTurn={setTurn} resetSignal = {resetSignal} />
+        <GameInfo turn={turn} onReset= {handleReset} moveList={moveList}/>
+        <Chessboard turn={turn} setTurn={setTurn} resetSignal = {resetSignal} setMoveList = {setMoveList} moveList= {moveList} />
       </main>
     </div>
   );

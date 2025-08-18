@@ -7,7 +7,7 @@ import Piece from "../models/piece";
 import * as GameRules from '../logic/gameRules';
 import PromotionModal from "./promotionModal";
 
-export default function Chessboard({turn, setTurn, resetSignal}) {
+export default function Chessboard({turn, setTurn, resetSignal, setMoveList, moveList}) {
   // Initialize an 8x8 board with pawns for demonstration
   const [prevMove, setPrevMove] = useState(null);
   const[checkmate, setCheckmate] = useState(false);
@@ -139,6 +139,17 @@ function handleSquareClick(row, col, piece) {
       piece: selectedPiece.getType(),
       color: selectedPiece.color,
     });
+
+
+    const move = {
+      to,
+      from,
+      piece: selectedPiece.getType(),
+    }
+    setMoveList([
+      ...moveList,
+      GameRules.convertToChessNotation(move)
+    ]);
 
     setSelected(null);
     setBoard(newBoard);

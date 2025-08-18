@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function GameInfo({ turn, onReset }) {
+export default function GameInfo({ turn, onReset, moveList }) {
   return (
     <div className="w-64 p-4 bg-white shadow-md rounded-md">
       <h2 className="text-xl font-semibold mb-4">Game Info</h2>
@@ -18,10 +18,9 @@ export default function GameInfo({ turn, onReset }) {
       <div className="mb-6">
         <h3 className="font-semibold mb-1">Moves History (Coming Soon):</h3>
         <ul className="list-disc list-inside text-sm text-gray-600">
-          <li>e4</li>
-          <li>e5</li>
-          <li>Nf3</li>
-          <li>...</li>
+          {moveList.map((move, index) => (
+            <li key={index}>{move}</li>
+          ))}
         </ul>
       </div>
 
