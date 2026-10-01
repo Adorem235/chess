@@ -23,81 +23,10 @@ export default function Chessboard({turn, setTurn, resetSignal, moveHistory, set
   const [selected, setSelected] = useState(null);
 
 function handleSquareClick(row, col, piece) {
-  // No moves once the game is over, or while waiting for a promotion choice
-  if (checkmate || stalemate || promotionInfo) {
-    return;
-  }
-
-  // Nothing selected yet: select one of the current player's pieces
-  if (!selected) {
-    if (piece && piece.color === turn) {
-      setSelected({ row, col, piece });
-    }
-    return;
-  }
-
-  const { row: fromRow, col: fromCol, piece: selectedPiece } = selected;
-  const from = { row: fromRow, col: fromCol };
-  const to = { row, col };
-
-  if (fromRow === row && fromCol === col) {
-    setSelected(null);
-    return;
-  }
-
-  if (piece && piece.color === turn) {
-    setSelected({ row, col, piece });
-    return;
-  }
-
-  if (!GameRules.isValidMove(board, from, to, selectedPiece, prevMove)) {
-    alert("Invalid move.");
-    return;
-  }
-
-  if (GameRules.isCheck(GameRules.simulateMove(board, from, to), selectedPiece.color)) {
-    alert("You can't move into check.");
-    return;
-  }
-
-  if (GameRules.isPromotionMove(selectedPiece, to)) {
-    // Show the pawn on its final square while the player chooses.
-    // Keep the board from before the move so the promotion is applied to it, not to the preview.
-    setPromotionInfo({ from, to, color: selectedPiece.color, boardBeforeMove: board });
-    setBoard(GameRules.applyMove(board, from, to).board);
-    setSelected(null);
-    return;
-  }
-
-  finishMove(GameRules.applyMove(board, from, to));
+ 
 }
 
-// Records a completed move, updates check status, then checks for mate / stalemate.
-// Only uses its arguments so it never reads a stale board or turn from state.
-function finishMove({ board: finalBoard, move }) {
-  const opponentColor = oppositeColor(move.color);
 
-  // Decide the game state immediately so there's no window where the same player can move again
-  const check = GameRules.isCheck(finalBoard, opponentColor);
-  const isCheckmate = GameRules.checkForCheckmate(finalBoard, opponentColor, move);
-  const isStalemate = !isCheckmate && GameRules.checkForStalemate(finalBoard, opponentColor, move);
-
-  setMoveHistory(prev => [...prev, { ...move, check, checkmate: isCheckmate }]);
-  setSelected(null);
-  setBoard(finalBoard);
-  setCheck(check ? opponentColor : null);
-
-  if (isCheckmate) {
-    setCheckmate(true);
-    // Delay only the alert so the final position renders before the blocking dialog
-    setTimeout(() => alert(`${opponentColor} is in checkmate!`), 100);
-  } else if (isStalemate) {
-    setStalemate(true);
-    setTimeout(() => alert(`${opponentColor} is in stalemate!`), 100);
-  } else {
-    setTurn(opponentColor);
-  }
-}
 
 function handlePromotionChoice(newType) {
   if (!promotionInfo) return;
