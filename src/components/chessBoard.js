@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 
 import Square from "../models/square";
-import Piece from "../models/piece";
-import * as GameRules from '../logic/gameRules';
+import Piece from "../lib/chess/piece";
+import * as GameRules from '../lib/chess/gameRules';
 import PromotionModal from "./promotionModal";
 
 export default function Chessboard({turn, setTurn, resetSignal, setMoveList, moveList}) {

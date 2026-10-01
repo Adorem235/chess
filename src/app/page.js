@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Navbar from "./components/navbar";
-import Chessboard from "./components/chessboard"
+import Chessboard from "../components/chessBoard"
 import GameInfo from "./components/gameInfo";
 
 export default function Home() {
