@@ -112,5 +112,13 @@ const gameSlice = createSlice({
   },
 });
 
+export const selectBoard = (state) => state.board
+export const selectTurn = (state) => state.turn
+export const selectSelected = (state) => state.selected
+export const selectStatus = (state) => state.status
+export const selectMessage = (state) => state.turn
+export const selectPendingPromotion = (state) => state.pendingPromotion
+export const selectMoveHistory = (state) => state.moveHistory
+
 export const { squareClicked, promotePawn, resetGame } = gameSlice.actions;
 export default gameSlice.reducer;
