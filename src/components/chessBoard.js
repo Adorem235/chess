@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 
 import Square from "./square";
-import Piece from "../lib/chess/piece";
+import { createPiece } from "../lib/chess/piece";
 import * as GameRules from '../lib/chess/gameRules';
 import PromotionModal from "./promotionModal";
 
@@ -61,42 +61,41 @@ function handleSquareClick(row, col, piece) {
     const newBoard = board.map((r, i) =>
       r.map((sq, j) => {
         if (i === fromRow && j === fromCol) return null;
+        // Kings and rooks are marked as moved so they can no longer castle
         if (i === row && j === col)
-          return new Piece(selectedPiece.color, selectedPiece.getType(), { row, col });
+          return createPiece(
+            selectedPiece.color,
+            selectedPiece.type,
+            ["king", "rook"].includes(selectedPiece.type)
+          );
         return sq;
       })
     );
 
     // Handle castling
-    if (selectedPiece.getType() === "king" && Math.abs(to.col - from.col) === 2) {
+    if (selectedPiece.type === "king" && Math.abs(to.col - from.col) === 2) {
       const row = from.row;
 
       // King-side castle
       if (to.col === 6) {
         const rook = board[row][7];
-        newBoard[row][5] = new Piece(rook.color, rook.getType(), { row, col: 5 });
-        newBoard[row][5].setHasMoved();
+        newBoard[row][5] = createPiece(rook.color, rook.type, true);
         newBoard[row][7] = null;
       }
 
       // Queen-side castle
       else if (to.col === 2) {
         const rook = board[row][0];
-        newBoard[row][3] = new Piece(rook.color, rook.getType(), { row, col: 3 });
-        newBoard[row][3].setHasMoved();
+        newBoard[row][3] = createPiece(rook.color, rook.type, true);
         newBoard[row][0] = null;
       }
     }
 
     const movedPiece = newBoard[row][col];
 
-    if (["king", "rook"].includes(movedPiece.getType())) {
-      movedPiece.setHasMoved();
-    }
-
     // Handle en passant
     if (
-      selectedPiece.getType() === "pawn" &&
+      selectedPiece.type === "pawn" &&
       GameRules.enPassant(board, selectedPiece, to, from, prevMove)
     ) {
       const direction = selectedPiece.color === "white" ? 1 : -1;
@@ -110,7 +109,7 @@ function handleSquareClick(row, col, piece) {
     }
     //handle promotion
     if (
-      movedPiece.getType() === "pawn" &&
+      movedPiece.type === "pawn" &&
       (row === 0 || row === 7)
     ) {
       // Keep the pawn on its final square and wait for the user's choice.
@@ -121,10 +120,9 @@ function handleSquareClick(row, col, piece) {
       return;
     }
 
-    finishMove(newBoard, from, to, selectedPiece.getType(), selectedPiece.color);
+    finishMove(newBoard, from, to, selectedPiece.type, selectedPiece.color);
   } else if (piece && piece.color === turn) {
     setSelected({ row, col, piece });
-    console.log("Selected piece at", row, col);
   }
 }
 
@@ -168,7 +166,7 @@ function handlePromotionChoice(newType) {
   const promotedBoard = pawnBoard.map((r, i) =>
     r.map((sq, j) =>
       i === pRow && j === pCol
-        ? new Piece(color, newType, { row: pRow, col: pCol })
+        ? createPiece(color, newType)
         : sq
     )
   );

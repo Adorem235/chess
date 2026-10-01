@@ -1,5 +1,6 @@
+import { createPiece } from "./piece";
+import { canMove, isValidPawnMove, isValidPawnCapture } from "./pieceMoves";
 
-import Piece from "./piece";
 export function newBoard(){
   const newBoard = Array(8)
         .fill(null)
@@ -10,33 +11,33 @@ export function newBoard(){
               // Initialise black pieces
               if (i === 0) {
                 if (j === 0 || j === 7) {
-                  return new Piece("black", "rook", { row: i, col: j });
+                  return createPiece("black", "rook");
                 } else if (j === 1 || j === 6) {
-                  return new Piece("black", "knight", { row: i, col: j });
+                  return createPiece("black", "knight");
                 } else if (j === 2 || j === 5) {
-                  return new Piece("black", "bishop", { row: i, col: j });
+                  return createPiece("black", "bishop");
                 } else if (j === 3) {
-                  return new Piece("black", "queen", { row: i, col: j });
+                  return createPiece("black", "queen");
                 } else if (j === 4) {
-                  return new Piece("black", "king", { row: i, col: j });
+                  return createPiece("black", "king");
                 }
               } else if (i === 1) {
-                return new Piece("black", "pawn", { row: i, col: j });
+                return createPiece("black", "pawn");
               }
               //initialise white pieces
               else if (i === 6) {
-                return new Piece("white", "pawn", { row: i, col: j });
+                return createPiece("white", "pawn");
               } else if (i === 7) {
                 if (j === 0 || j === 7) {
-                  return new Piece("white", "rook", { row: i, col: j });
+                  return createPiece("white", "rook");
                 } else if (j === 1 || j === 6) {
-                  return new Piece("white", "knight", { row: i, col: j });
+                  return createPiece("white", "knight");
                 } else if (j === 2 || j === 5) {
-                  return new Piece("white", "bishop", { row: i, col: j });
+                  return createPiece("white", "bishop");
                 } else if (j === 3) {
-                  return new Piece("white", "queen", { row: i, col: j });
+                  return createPiece("white", "queen");
                 } else if (j === 4) {
-                  return new Piece("white", "king", { row: i, col: j });
+                  return createPiece("white", "king");
                 }
               }
               return null; // Empty square
@@ -47,8 +48,8 @@ export function newBoard(){
 
 export function isValidMove(board, from, to, piece, prevMove) {
   const targetPiece = board[to.row][to.col];
-  const canMove = piece.canMove(from, to);
-  const isSlidingPiece = ["rook", "bishop", "queen"].includes(piece.getType());
+  const pieceCanMove = canMove(piece, from, to);
+  const isSlidingPiece = ["rook", "bishop", "queen"].includes(piece.type);
   const isEmptyDestination = !targetPiece;
   const isEnemy = targetPiece && targetPiece.color !== piece.color;
 
@@ -56,25 +57,25 @@ export function isValidMove(board, from, to, piece, prevMove) {
 
   if (isEnemy) {
     if (
-      (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
-      (piece.getType() === "pawn" && piece.isValidPawnCapture(from, to)) ||
-      (piece.getType() === "king" && canMove)||
-      (piece.getType() === "knight" && canMove)
+      (isSlidingPiece && pieceCanMove && isPathClear(board, from, to)) ||
+      (piece.type === "pawn" && isValidPawnCapture(piece, from, to)) ||
+      (piece.type === "king" && pieceCanMove) ||
+      (piece.type === "knight" && pieceCanMove)
     ) return true;
   } else if (isEmptyDestination) {
-    if(piece.getType() === "king" && Math.abs(to.col - from.col) == 2){
+    if(piece.type === "king" && Math.abs(to.col - from.col) == 2){
       if (canCastle(board, piece.color, from, to)){
         return true;
       }
     }
     if (
-      ((isSlidingPiece)&& canMove && isPathClear(board, from, to)) ||
-      (piece.getType() === "pawn" && piece.isValidPawnMove(from, to) && isPathClear(board, from, to)) ||
-      (["king", "knight"].includes(piece.getType()) && canMove)
+      (isSlidingPiece && pieceCanMove && isPathClear(board, from, to)) ||
+      (piece.type === "pawn" && isValidPawnMove(piece, from, to) && isPathClear(board, from, to)) ||
+      (["king", "knight"].includes(piece.type) && pieceCanMove)
     ) return true;
 
     if (
-      piece.getType() === "pawn" &&
+      piece.type === "pawn" &&
       enPassant(board, piece, to, from, prevMove)
     ) return true;
   }
@@ -103,16 +104,15 @@ export function isValidMove(board, from, to, piece, prevMove) {
 
 
  export function simulateMove(board, from, to){
-    const clonedBoard = board.map(row =>
-    row.map(cell => cell ? Object.assign(Object.create(Object.getPrototypeOf(cell)), cell) : null)
-  );
+  // Pieces are never mutated, so copying the rows is enough
+  const clonedBoard = board.map(row => [...row]);
 
   const movingPiece = clonedBoard[from.row][from.col];
 
   // A pawn moving diagonally onto an empty square is en passant: remove the captured pawn
   if (
     movingPiece &&
-    movingPiece.getType() === "pawn" &&
+    movingPiece.type === "pawn" &&
     from.col !== to.col &&
     !clonedBoard[to.row][to.col]
   ) {
@@ -121,9 +121,6 @@ export function isValidMove(board, from, to, piece, prevMove) {
 
   clonedBoard[to.row][to.col] = movingPiece;
   clonedBoard[from.row][from.col] = null;
-  if (movingPiece) {
-    movingPiece.setLocation({ row: to.row, col: to.col });
-  }
 
    return clonedBoard;
 
@@ -145,19 +142,17 @@ export function isValidMove(board, from, to, piece, prevMove) {
       if (piece.color !== color) {
         const from = { row, col };
         const to = { row: kingLocation.row, col: kingLocation.col };
-        const type = piece.getType?.() || piece.type;
+        const type = piece.type;
 
         const canThreaten =
-          (type === "knight" && piece.canMove(from, to)) ||
-          (type === "pawn" && piece.isValidPawnCapture?.(from, to)) ||
+          (type === "knight" && canMove(piece, from, to)) ||
+          (type === "pawn" && isValidPawnCapture(piece, from, to)) ||
           (["rook", "bishop", "queen"].includes(type) &&
-            piece.canMove(from, to) &&
+            canMove(piece, from, to) &&
             isPathClear(board, from, to)) ||
-          (type === "king" && piece.canMove(from, to));
+          (type === "king" && canMove(piece, from, to));
 
         if (canThreaten) {
-          console.log(`King is in check from ${type} at ${row},${col}`);
-          
           return true;
         }
       }
@@ -174,10 +169,9 @@ export function findKing(board, color) {
       const piece = board[row][col];
       if (
         piece &&
-        piece.getType() === "king" &&
+        piece.type === "king" &&
         piece.color === color
       ) {
-        console.log("king is at " + row + "," + col);
         return { row, col };
       }
     }
@@ -200,12 +194,13 @@ export function canCastle(board, color, from, to) {
   const rook = direction === "kingside" ? kingsideRook : queensideRook;
   const rookCol = direction === "kingside" ? 7 : 0;
   const pathCols = direction === "kingside" ? [5, 6] : [3, 2];
-  const castleCols = direction === "kingside" ? [4, 5, 6] : [4, 3, 2];
+  // The king's own square is already covered by the isCheck call above
+  const castleCols = direction === "kingside" ? [5, 6] : [3, 2];
 
   // Check the king and rook haven't moved
   if (!kingStart || !rook) return false;
-  if (kingStart.getType() !== "king" || rook.getType() !== "rook") return false;
-  if (kingStart.getHasMoved() || rook.getHasMoved()) return false;
+  if (kingStart.type !== "king" || rook.type !== "rook") return false;
+  if (kingStart.hasMoved || rook.hasMoved) return false;
 
   // Check the path between king and rook is clear
   for (let col of pathCols) {
@@ -299,8 +294,8 @@ export function checkForStalemate(board, color, prevMove) {
 export function enPassant(board, piece, to, from, prevMove) {
   if (
     !prevMove ||
-    piece.getType() !== "pawn" ||
-    !piece.isValidPawnCapture(from, to)
+    piece.type !== "pawn" ||
+    !isValidPawnCapture(piece, from, to)
   ) {
     return false;
   }
@@ -400,7 +395,6 @@ export function convertToChessNotation(move){
     case 7 :
       square.col = "h"
   }
-  console.log("This is a :" + move.piece);
   convertedMove = pieceType + square.col + square.row
   return convertedMove
   //1st rank is where row = 7
