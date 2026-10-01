@@ -2,12 +2,12 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 
-import Square from "../models/square";
+import Square from "./square";
 import Piece from "../lib/chess/piece";
 import * as GameRules from '../lib/chess/gameRules';
 import PromotionModal from "./promotionModal";
 
-export default function Chessboard({turn, setTurn, resetSignal, setMoveList, moveList}) {
+export default function Chessboard({turn, setTurn, resetSignal, setMoveList}) {
   // Initialize an 8x8 board with pawns for demonstration
   const [prevMove, setPrevMove] = useState(null);
   const[checkmate, setCheckmate] = useState(false);
@@ -20,24 +20,9 @@ export default function Chessboard({turn, setTurn, resetSignal, setMoveList, mov
 
   const [selected, setSelected] = useState(null);
 
-  // Set a piece at a specific square
-  function setPiece(row, col, piece) {
-    setBoard(prev =>
-      prev.map((r, i) =>
-        i === row
-          ? r.map((sq, j) => (j === col ? piece : sq))
-          : r
-      )
-    );
-  }
-
-  // Remove a piece at a specific square
-
-
-
 function handleSquareClick(row, col, piece) {
-  if (checkmate === true) {
-    console.log(`${piece?.color || "A player"} is in checkmate`);
+  // No moves once the game is over, or while waiting for a promotion choice
+  if (checkmate || stalemate || promotionInfo) {
     return;
   }
 
@@ -90,6 +75,7 @@ function handleSquareClick(row, col, piece) {
       if (to.col === 6) {
         const rook = board[row][7];
         newBoard[row][5] = new Piece(rook.color, rook.getType(), { row, col: 5 });
+        newBoard[row][5].setHasMoved();
         newBoard[row][7] = null;
       }
 
@@ -97,6 +83,7 @@ function handleSquareClick(row, col, piece) {
       else if (to.col === 2) {
         const rook = board[row][0];
         newBoard[row][3] = new Piece(rook.color, rook.getType(), { row, col: 3 });
+        newBoard[row][3].setHasMoved();
         newBoard[row][0] = null;
       }
     }
@@ -126,88 +113,68 @@ function handleSquareClick(row, col, piece) {
       movedPiece.getType() === "pawn" &&
       (row === 0 || row === 7)
     ) {
-      // Temporarily keep the pawn there, then open modal
-      setPromotionInfo({ row, col, color: movedPiece.color });
-      setBoard(newBoard);          // Show the pawn in its final square
-      return;                      // Exit early; wait for user choice
+      // Keep the pawn on its final square and wait for the user's choice.
+      // Store the board and move so handlePromotionChoice doesn't rely on stale state.
+      setPromotionInfo({ row, col, color: movedPiece.color, from, to, board: newBoard });
+      setSelected(null);
+      setBoard(newBoard);
+      return;
     }
 
-    // Update state
-    setPrevMove({
-      from,
-      to,
-      piece: selectedPiece.getType(),
-      color: selectedPiece.color,
-    });
-
-
-    const move = {
-      to,
-      from,
-      piece: selectedPiece.getType(),
-    }
-    setMoveList([
-      ...moveList,
-      GameRules.convertToChessNotation(move)
-    ]);
-
-    setSelected(null);
-    setBoard(newBoard);
-    const opponentColor = turn === "white" ? "black" : "white";
-
-    if (GameRules.isCheck(newBoard, opponentColor)) {
-      setCheck(`${opponentColor}`);
-    } else {
-      setCheck(null);
-    }
-
-    
-    setTimeout(() => {
-      if (GameRules.checkForCheckmate(newBoard, opponentColor)) {
-        setCheckmate(true);
-        alert(`${opponentColor} is in checkmate!`);
-      } else if (GameRules.checkForStalemate(newBoard, opponentColor)) {
-        alert(`${opponentColor} is in stalemate!`);
-       setStalemate(true);
-      } else {
-        setTurn(opponentColor);
-      }
-    }, 100);
+    finishMove(newBoard, from, to, selectedPiece.getType(), selectedPiece.color);
   } else if (piece && piece.color === turn) {
     setSelected({ row, col, piece });
     console.log("Selected piece at", row, col);
   }
 }
 
+// Records a completed move, updates check status, then checks for mate / stalemate.
+// Only uses its arguments so it never reads a stale board or turn from state.
+function finishMove(finalBoard, from, to, pieceType, color) {
+  const lastMove = { from, to, piece: pieceType, color };
+  setPrevMove(lastMove);
+
+  const move = { to, from, piece: pieceType };
+  setMoveList(prev => [...prev, GameRules.convertToChessNotation(move)]);
+
+  setSelected(null);
+  setBoard(finalBoard);
+  const opponentColor = color === "white" ? "black" : "white";
+
+  if (GameRules.isCheck(finalBoard, opponentColor)) {
+    setCheck(`${opponentColor}`);
+  } else {
+    setCheck(null);
+  }
+
+  // Decide the game state immediately so there's no window where the same player can move again
+  if (GameRules.checkForCheckmate(finalBoard, opponentColor, lastMove)) {
+    setCheckmate(true);
+    // Delay only the alert so the final position renders before the blocking dialog
+    setTimeout(() => alert(`${opponentColor} is in checkmate!`), 100);
+  } else if (GameRules.checkForStalemate(finalBoard, opponentColor, lastMove)) {
+    setStalemate(true);
+    setTimeout(() => alert(`${opponentColor} is in stalemate!`), 100);
+  } else {
+    setTurn(opponentColor);
+  }
+}
+
 function handlePromotionChoice(newType) {
   if (!promotionInfo) return;
 
-  // Create the promoted piece
-  const { row: pRow, col: pCol, color } = promotionInfo;
-  setBoard(prev =>
-    prev.map((r, i) =>
-      r.map((sq, j) =>
-        i === pRow && j === pCol
-          ? new Piece(color, newType, { row: pRow, col: pCol })
-          : sq
-      )
+  // Build the promoted board from the stored post-move board, not from state
+  const { row: pRow, col: pCol, color, from, to, board: pawnBoard } = promotionInfo;
+  const promotedBoard = pawnBoard.map((r, i) =>
+    r.map((sq, j) =>
+      i === pRow && j === pCol
+        ? new Piece(color, newType, { row: pRow, col: pCol })
+        : sq
     )
   );
 
-  // Clear modal & finish turn
   setPromotionInfo(null);
-
-  // After promotion the move is complete; check for mate / stalemate
-  const nextColor = color === "white" ? "black" : "white";
-  const b = board;             // latest board is now in state
-  if (GameRules.checkForCheckmate(b, nextColor)) {
-    setCheckmate(true);
-    alert(`${nextColor} is in checkmate!`);
-  } else if (GameRules.checkForStalemate(b, nextColor)) {
-    alert(`${nextColor} is in stalemate!`);
-  } else {
-    setTurn(nextColor);
-  }
+  finishMove(promotedBoard, from, to, "pawn", color);
 }
 
 useEffect(() => {
@@ -216,8 +183,11 @@ useEffect(() => {
   setCheck(false);
   setCheckmate(false);
   setPrevMove(null);
-  setPromotionInfo(null);;
-  }, [resetSignal]);
+  setPromotionInfo(null);
+  setMoveList([])
+  setSelected(null);
+  setStalemate(false);
+  }, [resetSignal, setTurn, setMoveList]);
 
 
 
@@ -233,8 +203,6 @@ return (
             row={i}
             col={j}
             piece={piece}
-            setPiece={(p) => setPiece(i, j, p)}
-            removePiece={() => removePiece(i, j)}
             onSquareClick={handleSquareClick}
           />
         ))

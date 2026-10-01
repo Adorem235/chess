@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 
 export default function PromotionModal({ color, onSelect }) {
   const promotionPieces = ["queen", "rook", "bishop", "knight"];
@@ -14,15 +15,17 @@ export default function PromotionModal({ color, onSelect }) {
               onClick={() => onSelect(type)}
               className="hover:scale-105 transition-transform"
             >
-              <img
-                src={`./piece_icons/${color}_${type}.svg`}
+              <Image
+                src={`/piece_icons/${color}_${type}.svg`}
                 alt={type}
+                width={48}
+                height={48}
                 className="w-12 h-12 mx-auto"
               />
             </button>
           ))}
         </div>
       </div>
-    </div>
+    </div> 
   );
 }

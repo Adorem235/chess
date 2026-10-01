@@ -1,5 +1,5 @@
 
-import Piece from "../models/piece";
+import Piece from "./piece";
 export function newBoard(){
   const newBoard = Array(8)
         .fill(null)
@@ -58,7 +58,8 @@ export function isValidMove(board, from, to, piece, prevMove) {
     if (
       (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
       (piece.getType() === "pawn" && piece.isValidPawnCapture(from, to)) ||
-      (piece.getType() === "king" && canMove)
+      (piece.getType() === "king" && canMove)||
+      (piece.getType() === "knight" && canMove)
     ) return true;
   } else if (isEmptyDestination) {
     if(piece.getType() === "king" && Math.abs(to.col - from.col) == 2){
@@ -67,8 +68,8 @@ export function isValidMove(board, from, to, piece, prevMove) {
       }
     }
     if (
-      (isSlidingPiece && canMove && isPathClear(board, from, to)) ||
-      (piece.getType() === "pawn" && piece.isValidPawnMove(from, to)) ||
+      ((isSlidingPiece)&& canMove && isPathClear(board, from, to)) ||
+      (piece.getType() === "pawn" && piece.isValidPawnMove(from, to) && isPathClear(board, from, to)) ||
       (["king", "knight"].includes(piece.getType()) && canMove)
     ) return true;
 
@@ -107,6 +108,16 @@ export function isValidMove(board, from, to, piece, prevMove) {
   );
 
   const movingPiece = clonedBoard[from.row][from.col];
+
+  // A pawn moving diagonally onto an empty square is en passant: remove the captured pawn
+  if (
+    movingPiece &&
+    movingPiece.getType() === "pawn" &&
+    from.col !== to.col &&
+    !clonedBoard[to.row][to.col]
+  ) {
+    clonedBoard[from.row][to.col] = null;
+  }
 
   clonedBoard[to.row][to.col] = movingPiece;
   clonedBoard[from.row][from.col] = null;
@@ -205,7 +216,6 @@ export function canCastle(board, color, from, to) {
   for (let col of castleCols) {
     const testBoard = simulateMove(board, { row, col: 4 }, { row, col });
     if (isCheck(testBoard, color)) {
-      alert("You can't castle through check.");
       return false;
     }
   }
@@ -220,14 +230,14 @@ export function canCastle(board, color, from, to) {
   return false;
 }
 
-export function checkForCheckmate(board, color) {
+export function checkForCheckmate(board, color, prevMove) {
   if (isCheck(board, color)) {
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const piece = board[row][col];
         if (!piece || piece.color !== color) continue;
 
-        const moves = getAllPossibleMoves(board, piece, { row, col });
+        const moves = getAllPossibleMoves(board, piece, { row, col }, prevMove);
         for (const move of moves) {
           const testBoard = simulateMove(board, { row, col }, move);
           if (!isCheck(testBoard, color)) {
@@ -242,13 +252,13 @@ export function checkForCheckmate(board, color) {
 }
 
 
-export function getAllPossibleMoves(board, piece, startLocation){
+export function getAllPossibleMoves(board, piece, startLocation, prevMove){
   let moveList = [];
-  console.log(piece, startLocation);
   for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         let destination = {row, col}
-        if(piece.canMove(startLocation, destination) && isValidMove(board, startLocation, destination, piece)){
+        // isValidMove covers captures, castling and en passant; canMove alone would skip pawn captures
+        if(isValidMove(board, startLocation, destination, piece, prevMove)){
           moveList.push({row,col})
 
         }
@@ -259,7 +269,7 @@ export function getAllPossibleMoves(board, piece, startLocation){
 
 }
 
-export function checkForStalemate(board, color) {
+export function checkForStalemate(board, color, prevMove) {
   if (isCheck(board, color)) {
     return false; // If the player is in check, it's not stalemate
   }
@@ -270,7 +280,7 @@ export function checkForStalemate(board, color) {
       const startLocation = { row, col };
 
       if (piece && piece.color === color) {
-        const moves = getAllPossibleMoves(board, piece, startLocation);
+        const moves = getAllPossibleMoves(board, piece, startLocation, prevMove);
 
         for (const move of moves) {
           const simulated = simulateMove(board, startLocation, move);
