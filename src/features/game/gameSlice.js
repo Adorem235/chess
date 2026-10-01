@@ -1,8 +1,9 @@
 import { newBoard } from "@/lib/chess/board";
 import { COLORS } from "@/lib/chess/constants";
-import { createSlice, current } from "@reduxjs/toolkit";
+import { createSlice, createSelector, current } from "@reduxjs/toolkit";
 import * as GameRules from "@/lib/chess/gameRules";
 import { oppositeColor } from "@/lib/chess/piece";
+import { convertToChessNotation } from "@/lib/chess/notation";
 
 const initialState = {
   board: newBoard(),
@@ -112,13 +113,63 @@ const gameSlice = createSlice({
   },
 });
 
-export const selectBoard = (state) => state.board
-export const selectTurn = (state) => state.turn
-export const selectSelected = (state) => state.selected
-export const selectStatus = (state) => state.status
-export const selectMessage = (state) => state.turn
-export const selectPendingPromotion = (state) => state.pendingPromotion
-export const selectMoveHistory = (state) => state.moveHistory
+// Selectors receive the root state; the game lives under state.game (see store.js)
+export const selectBoard = (state) => state.game.board
+export const selectTurn = (state) => state.game.turn
+export const selectSelected = (state) => state.game.selected
+export const selectStatus = (state) => state.game.status
+export const selectMessage = (state) => state.game.message
+export const selectPendingPromotion = (state) => state.game.pendingPromotion
+export const selectMoveHistory = (state) => state.game.moveHistory
+
+export const selectPrevMove = (state) => {
+  const history = selectMoveHistory(state);
+  return history.length ? history[history.length - 1] : null;
+}
+
+// The side to move is in check if the last move gave check
+export const selectInCheck = (state) => {
+  const prevMove = selectPrevMove(state);
+  return prevMove?.check ? selectTurn(state) : null;
+}
+
+// Shared so "nothing selected" always returns the same reference
+const NO_MOVES = [];
+
+export const selectLegalMoves = createSelector(
+  [selectBoard, selectSelected, selectPrevMove],
+  (board, selected, prevMove) => {
+    if (!selected) return NO_MOVES;
+    const piece = board[selected.row][selected.col];
+    return GameRules.getLegalMoves(board, piece, selected, prevMove);
+  }
+)
+
+// The board to draw: while a promotion is pending, shows the pawn on its final square
+export const selectDisplayBoard = createSelector(
+  [selectBoard, selectPendingPromotion],
+  (board, pendingPromotion) => {
+    if (!pendingPromotion) return board;
+    return GameRules.applyMove(board, pendingPromotion.from, pendingPromotion.to).board;
+  }
+)
+
+export const selectNotation = createSelector(
+  [selectMoveHistory],
+  (moveHistory) => moveHistory.map(convertToChessNotation)
+)
+
+// Piece types each color has captured, e.g. { white: ["pawn"], black: [] }
+export const selectCapturedPieces = createSelector(
+  [selectMoveHistory],
+  (moveHistory) => {
+    const captured = { [COLORS.WHITE]: [], [COLORS.BLACK]: [] };
+    for (const move of moveHistory) {
+      if (move.captured) captured[move.color].push(move.captured);
+    }
+    return captured;
+  }
+)
 
 export const { squareClicked, promotePawn, resetGame } = gameSlice.actions;
 export default gameSlice.reducer;
