@@ -1,8 +1,9 @@
 import React from "react";
 import Image from "next/image";
+import { PROMOTION_PIECES } from "../lib/chess/constants";
 
 export default function PromotionModal({ color, onSelect }) {
-  const promotionPieces = ["queen", "rook", "bishop", "knight"];
+  const promotionPieces = PROMOTION_PIECES;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
