@@ -1,8 +1,9 @@
 'use client'
 
 import React from "react";
+import { convertToChessNotation } from "../lib/chess/notation";
 
-export default function GameInfo({ turn, onReset, moveList }) {
+export default function GameInfo({ turn, onReset, moveHistory }) {
   return (
     <div className="w-64 p-4 bg-white shadow-md rounded-md">
       <h2 className="text-xl font-semibold mb-4">Game Info</h2>
@@ -20,8 +21,8 @@ export default function GameInfo({ turn, onReset, moveList }) {
       <div className="mb-6">
         <h3 className="font-semibold mb-1">Moves History (Coming Soon):</h3>
         <ul className="list-disc list-inside text-sm text-gray-600">
-          {moveList.map((move, index) => (
-            <li key={index}>{move}</li>
+          {moveHistory.map((move, index) => (
+            <li key={index}>{convertToChessNotation(move)}</li>
           ))}
         </ul>
       </div>
