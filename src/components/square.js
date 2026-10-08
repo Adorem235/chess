@@ -1,9 +1,12 @@
+import { squareClicked } from "@/features/game/gameSlice";
 import Image from "next/image";
+import { useDispatch } from "react-redux";
 
-export default function Square({ row, col, piece, onSquareClick }) {
+export default function Square({ row, col, piece}) {
   // Determine square color
   const isDark = (row + col) % 2 === 1;
   const bgColor = isDark ? "bg-green-700" : "bg-green-200";
+  const dispatch = useDispatch();
 
 
   function renderPiece(piece) {
@@ -21,7 +24,7 @@ export default function Square({ row, col, piece, onSquareClick }) {
   return (
     <div
       className={`${bgColor} w-16 h-16 flex items-center justify-center`}
-      onClick={() => onSquareClick(row, col, piece)}
+      onClick={() => dispatch(squareClicked({row, col}))}
     >
       {renderPiece(piece)}
     </div>

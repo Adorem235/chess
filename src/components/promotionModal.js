@@ -1,9 +1,13 @@
 import React from "react";
 import Image from "next/image";
 import { PROMOTION_PIECES } from "../lib/chess/constants";
+import { useDispatch, useSelector } from "react-redux";
+import { promotePawn, selectTurn } from "@/features/game/gameSlice";
 
-export default function PromotionModal({ color, onSelect }) {
+export default function PromotionModal() {
   const promotionPieces = PROMOTION_PIECES;
+  const color = useSelector(selectTurn);
+  const dispatch = useDispatch();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
@@ -13,7 +17,7 @@ export default function PromotionModal({ color, onSelect }) {
           {promotionPieces.map((type) => (
             <button
               key={type}
-              onClick={() => onSelect(type)}
+              onClick={() => dispatch(promotePawn(type))}
               className="hover:scale-105 transition-transform"
             >
               <Image

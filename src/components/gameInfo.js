@@ -1,9 +1,13 @@
 'use client'
 
 import React from "react";
-import { convertToChessNotation } from "../lib/chess/notation";
+import { useDispatch, useSelector } from "react-redux";
+import { resetGame, selectNotation, selectTurn } from "@/features/game/gameSlice";
 
-export default function GameInfo({ turn, onReset, moveHistory }) {
+export default function GameInfo() {
+  const turn = useSelector(selectTurn);
+  const notation = useSelector(selectNotation);
+  const dispatch = useDispatch();
   return (
     <div className="w-64 p-4 bg-white shadow-md rounded-md">
       <h2 className="text-xl font-semibold mb-4">Game Info</h2>
@@ -21,8 +25,8 @@ export default function GameInfo({ turn, onReset, moveHistory }) {
       <div className="mb-6">
         <h3 className="font-semibold mb-1">Moves History (Coming Soon):</h3>
         <ul className="list-disc list-inside text-sm text-gray-600">
-          {moveHistory.map((move, index) => (
-            <li key={index}>{convertToChessNotation(move)}</li>
+          {notation.map((move, index) => (
+            <li key={index}>{move}</li>
           ))}
         </ul>
       </div>
@@ -34,7 +38,7 @@ export default function GameInfo({ turn, onReset, moveHistory }) {
       
       <br/>
       <button
-        onClick={onReset}
+        onClick={()=> dispatch(resetGame())}
         className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
       >
         Reset Game
