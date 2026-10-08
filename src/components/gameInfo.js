@@ -23,7 +23,7 @@ export default function GameInfo() {
       </div>
 
       <div className="mb-6">
-        <h3 className="font-semibold mb-1">Moves History (Coming Soon):</h3>
+        <h3 className="font-semibold mb-1">Moves History:</h3>
         <ul className="list-disc list-inside text-sm text-gray-600">
           {notation.map((move, index) => (
             <li key={index}>{move}</li>
